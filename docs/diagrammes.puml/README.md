@@ -24,4 +24,5 @@ Le dossier [`output/`](output/) contient pour chaque diagramme :
    ```
 
 Les deux scripts exportent les fichiers `.svg` et `.png` dans `output/` avec
-l'encodage UTF-8. Le style commun est centralisé dans `diagram_style.iuml`.
+l'encodage UTF-8. Chaque fichier `.puml` est autonome : il peut donc être
+prévisualisé ou exporté seul, sans fichier de style externe à inclure.
