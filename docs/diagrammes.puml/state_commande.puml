@@ -1,0 +1,50 @@
+@startuml state_commande
+[*] --> en_attente
+
+en_attente --> payee : l'acheteur règle le paiement\n(fonds séquestrés)
+en_attente --> annulee : l'acheteur annule
+
+payee --> en_cours_de_traitement : paiement confirmé
+
+en_cours_de_traitement --> validee : le fournisseur valide
+en_cours_de_traitement --> refusee : le fournisseur refuse\n(remboursement)
+en_cours_de_traitement --> annulee : l'acheteur annule
+
+validee --> en_cours_de_livraison : l'acheteur avait choisi la livraison ;\nun livreur prend en charge
+validee --> confirmee : l'acheteur avait choisi le retrait direct ;\nil confirme la réception en main propre\n(sans vérification par QR code)
+validee --> refusee : l'acheteur avait choisi le retrait direct\net signale une non-conformité (remboursement)
+
+en_cours_de_livraison --> livree : le livreur mentionne la livraison
+
+livree --> confirmee : l'acheteur scanne le QR code\net confirme la réception
+livree --> refusee : l'acheteur refuse\n(non-conformité)
+
+confirmee --> [*] : versement au fournisseur\n(et au livreur le cas échéant)
+annulee --> [*]
+refusee --> [*] : remboursement de l'acheteur
+
+state payee as "payée"
+state en_cours_de_traitement as "en cours de traitement"
+state validee as "validée"
+state en_cours_de_livraison as "en cours de livraison"
+state livree as "livrée"
+state confirmee as "confirmée"
+state annulee as "annulée"
+state refusee as "refusée"
+
+note right of validee
+  Le mode de retrait (livraison ou retrait
+  direct) a été choisi par l'acheteur dès la
+  création de la commande ; il détermine
+  laquelle des trois transitions ci-dessus
+  s'applique. Plus possible d'annuler la
+  commande après validation.
+end note
+note right of livree
+  Pas possible de refuser une commande
+  avant livraison ni après confirmation.
+  Cette étape et la vérification par QR code
+  ne concernent que le cas où un livreur
+  est intervenu.
+end note
+@enduml

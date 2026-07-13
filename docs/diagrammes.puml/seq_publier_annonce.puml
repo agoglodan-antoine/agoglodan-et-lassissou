@@ -1,0 +1,28 @@
+@startuml seq_publier_annonce
+actor "Fournisseur\n(Éleveur / Vendeur provende / Vendeur accessoire)" as Four
+participant "Interface" as UI
+participant "ContrôleurAnnonce" as Ctrl
+database "Base de données" as DB
+actor "Administrateur" as Adm
+
+Four -> UI : remplit le formulaire d'annonce\n+ barème de réduction
+UI -> Ctrl : soumettre(donnéesAnnonce, reductions[])
+Ctrl -> Ctrl : valider les données saisies
+Ctrl -> Ctrl : déduire type_annonce du rôle de l'auteur
+Ctrl -> DB : INSERT annonce (statut = en_attente)
+Ctrl -> DB : INSERT reductions_annonce (barème)
+DB --> Ctrl : confirmation (id_annonce)
+Ctrl -> Adm : notification(nouvelle annonce à modérer)
+Ctrl --> UI : annonce soumise
+UI --> Four : affiche « en attente de validation »
+
+Adm -> UI : consulte l'annonce en attente
+UI -> Ctrl : modererAnnonce(id_annonce, decision, motif?)
+alt décision = approuver
+  Ctrl -> DB : UPDATE statut = visible
+  Ctrl -> Four : notification(annonce approuvée et visible)
+else décision = rejeter
+  Ctrl -> DB : UPDATE statut = rejetee, motif_rejet
+  Ctrl -> Four : notification(annonce rejetée : motif)
+end
+@enduml

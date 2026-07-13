@@ -1,0 +1,34 @@
+@startuml act_prendre_rdv
+|Éleveur|
+start
+:Rechercher un vétérinaire
+(étoiles et certificat affichés);
+:Consulter les services et tarifs proposés
+(SERVICES_VETERINAIRES);
+:Choisir un service et un créneau souhaité;
+|Système ElevConnect|
+:Enregistrer la demande de RDV (statut = en_attente);
+:Notifier le vétérinaire;
+|Vétérinaire|
+:Consulter la demande de rendez-vous;
+if (Créneau disponible ?) then (oui)
+  :Confirmer le rendez-vous;
+else (non)
+  :Refuser le rendez-vous;
+endif
+|Système ElevConnect|
+:Mettre à jour le statut du RDV (confirme / refuse)
+et notifier l'éleveur;
+|Éleveur|
+:Consulter le résultat de la demande;
+if (Rendez-vous confirmé ?) then (oui)
+  :Se rendre au rendez-vous et régler
+  directement le vétérinaire (hors plateforme);
+  |Vétérinaire|
+  :Marquer le rendez-vous comme réalisé;
+  |Éleveur|
+  :Laisser une note et un avis sur le rendez-vous;
+else (non)
+endif
+stop
+@enduml

@@ -1,0 +1,27 @@
+@startuml architecture
+' ============================================================
+' ElevConnect — Architecture logicielle 3-tiers (MVC Laravel)
+' Chapitre 4, section III — version simplifiée, sans couleur
+' ============================================================
+skinparam backgroundColor #FFFFFF
+skinparam roundcorner 8
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 12
+skinparam monochrome true
+
+title Architecture logicielle 3-tiers d'ElevConnect (MVC Laravel)
+
+rectangle "COUCHE PRÉSENTATION\nNavigateur / Client\n\nVues Blade (HTML5, CSS3, Tailwind CSS,\nJavaScript) — scan de QR code côté client\n(pas d'intégration WhatsApp Business)" as PRES
+
+rectangle "COUCHE MÉTIER / APPLICATION\nServeur Laravel 13 (PHP 8.3.14) sur WampServer (environnement local)\n\nRoutes → Contrôleurs → Form Requests\n→ Middlewares (auth, rôle, CSRF) → Modèles Eloquent\n\nServices : notifications, moteur de statuts (annonce, commande,\nlivraison), génération/vérification QR code, calcul des\ncommissions et des versements, tâches planifiées" as APP
+
+rectangle "COUCHE DONNÉES\nSGBD MySQL\n\nBase de données (22 tables)\nMoteur InnoDB — charset utf8mb4" as DATA
+
+rectangle "SERVICES EXTERNES\nPasserelle de paiement\n(Mobile Money / Carte bancaire)" as EXT
+
+PRES -down-> APP : Requêtes / réponses HTTP (HTTPS)
+APP -down-> DATA : Eloquent ORM (requêtes SQL paramétrées)
+APP -right-> EXT : Encaissement (séquestre) et\nversements (fournisseur, livreur)
+
+@enduml

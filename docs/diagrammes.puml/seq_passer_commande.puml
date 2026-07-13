@@ -1,0 +1,66 @@
+@startuml seq_passer_commande
+actor "Acheteur" as Ach
+participant "Interface" as UI
+participant "ContrôleurCommande" as Ctrl
+participant "ContrôleurPaiement" as CtrlP
+database "Base de données" as DB
+actor "Fournisseur" as Four
+actor "Livreur" as Liv
+
+Ach -> UI : choisit une annonce, une quantité\net son mode de retrait (livraison / retrait direct)
+UI -> Ctrl : creerCommande(id_annonce, qte, mode_retrait)
+Ctrl -> DB : vérifier disponibilité
+DB --> Ctrl : quantité disponible
+Ctrl -> Ctrl : calculer montant_total, réduction,\nmontant_net_commande
+Ctrl -> Ctrl : générer code_authenticite (QR)
+Ctrl -> DB : INSERT commande (en_attente)
+Ctrl --> UI : commande créée, aller au paiement
+
+Ach -> UI : effectue le paiement
+UI -> CtrlP : payer(id_commande, moyen, numero_compte)
+CtrlP -> CtrlP : calculer commissions (5% commande, 5% livraison)
+CtrlP -> DB : INSERT paiement (statut = en_attente)
+CtrlP -> DB : UPDATE paiement (statut = reussi)
+CtrlP -> DB : UPDATE commande (statut = payee)
+CtrlP -> Four : notification(nouvelle commande payée)
+CtrlP -> DB : UPDATE commande (statut = en_cours_de_traitement)
+
+Four -> UI : consulte et valide la commande
+UI -> Ctrl : validerCommande(id_commande)
+Ctrl -> DB : UPDATE commande (statut = validee)
+
+alt l'acheteur avait choisi la livraison
+  Ctrl -> Liv : notification(livraison disponible)
+  Liv -> UI : prend en charge la livraison
+  UI -> Ctrl : prendreEnChargeLivraison(id_commande)
+  Ctrl -> DB : INSERT livraison (statut = prise_en_charge)
+  Ctrl -> DB : UPDATE commande (statut = en_cours_de_livraison)
+  Liv -> UI : livre la commande, affiche le QR code
+  UI -> Ctrl : demarrerConfirmation(id_commande)
+  Ctrl -> DB : UPDATE commande (statut = livree)
+
+  Ach -> UI : scanne le QR code
+  UI -> Ctrl : verifierAuthenticite(id_commande, code_scanne)
+  Ctrl -> DB : comparer code_authenticite
+  alt code valide
+    Ctrl -> DB : UPDATE commande (statut = confirmee)
+    Ctrl -> DB : UPDATE livraison (statut = terminee,\nverification_authenticite = verifiee)
+  else code invalide
+    Ctrl -> DB : UPDATE livraison (verification_authenticite = echoue)
+    Ctrl --> UI : alerte fraude potentielle
+  end
+else l'acheteur avait choisi le retrait direct
+  Ach -> UI : confirme la réception en main propre\n(aucune vérification par QR code)
+  UI -> Ctrl : confirmerReceptionDirecte(id_commande)
+  Ctrl -> DB : UPDATE commande (statut = confirmee)
+end
+
+Ctrl -> CtrlP : déclencherVersements(id_commande)
+CtrlP -> DB : INSERT versement (fournisseur)
+CtrlP -> DB : INSERT versement (livreur, si applicable)
+Ctrl --> UI : commande confirmée
+
+Ach -> UI : laisse une note et un avis
+UI -> Ctrl : noterCommande(id_commande, note, avis)
+Ctrl -> DB : UPDATE note_client_commande, avis_client_commande,\nnote_client_livraison, avis_client_livraison
+@enduml

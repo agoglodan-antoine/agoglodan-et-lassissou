@@ -1,0 +1,98 @@
+@startuml usecase_diagram
+left to right direction
+skinparam packageStyle rectangle
+
+actor "Éleveur" as Ele
+actor "Acheteur" as Ach
+actor "Vendeur de\nprovende" as VenP
+actor "Vendeur\nd'accessoires" as VenA
+actor "Vétérinaire" as Vet
+actor "Livreur" as Liv
+actor "Administrateur" as Adm
+
+Ele -up-|> Ach
+VenP -up-|> Ach
+VenA -up-|> Ach
+Vet -up-|> Ach
+Liv -up-|> Ach
+
+rectangle "Système ElevConnect" {
+  usecase "S'authentifier /\nGérer son profil" as UC1
+  usecase "Publier une annonce\n(animal, provende, accessoire)" as UC2
+  usecase "Définir un barème\nde réduction" as UC2b
+  usecase "Rechercher des annonces" as UC3
+  usecase "Passer une commande\n(choisir livraison ou\nretrait direct)" as UC4
+  usecase "Effectuer le paiement\n(séquestre)" as UC4b
+  usecase "Gérer une commande reçue\n(valider / rejeter)" as UC5
+  usecase "Confirmer la réception\n(scanner le QR code\nsi livraison, sinon\nconfirmation directe)" as UC5b
+  usecase "Gérer son planning\nde disponibilité" as UC6
+  usecase "Assurer une livraison" as UC6b
+  usecase "Prendre rendez-vous\nvétérinaire" as UC7
+  usecase "Gérer ses services\net tarifs" as UC7b
+  usecase "Confirmer un rendez-vous" as UC8
+  usecase "Souscrire à l'abonnement\nPremium (payant)" as UC9
+  usecase "Laisser une note et un avis" as UC11
+  usecase "Publier une actualité" as UC12
+  usecase "Modérer les annonces" as UC13
+  usecase "Gérer les utilisateurs" as UC14
+  usecase "Superviser paiements\net versements" as UC15
+}
+
+note right of UC9
+  Réservé au rôle vétérinaire.
+  La formule Basique (gratuite) est
+  attribuée par défaut ; seul le passage
+  à la formule Premium nécessite
+  cette souscription.
+end note
+
+Ele --> UC1
+Ele --> UC2
+Ele --> UC2b
+Ele --> UC5
+Ele --> UC7
+Ele --> UC12
+
+VenP --> UC1
+VenP --> UC2
+VenP --> UC2b
+VenP --> UC5
+VenP --> UC12
+
+VenA --> UC1
+VenA --> UC2
+VenA --> UC2b
+VenA --> UC5
+VenA --> UC12
+
+Vet --> UC1
+Vet --> UC7b
+Vet --> UC8
+Vet --> UC9
+Vet --> UC12
+
+Adm --> UC1
+Adm --> UC12
+Adm --> UC13
+Adm --> UC14
+Adm --> UC15
+
+Ach --> UC1
+Ach --> UC3
+Ach --> UC4
+Ach --> UC4b
+Ach --> UC5b
+Ach --> UC11
+
+Liv --> UC1
+Liv --> UC6
+Liv --> UC6b
+Liv --> UC12
+
+UC4 .> UC4b : <<include>>
+UC4b .> UC5 : <<include>>
+UC5 .> UC6b : <<extend>>\nsi livraison choisie et livreur assigné
+UC6b .> UC5b : <<include>>
+UC2 .> UC13 : <<include>>
+UC7 .> UC7b : <<extend>>
+@enduml

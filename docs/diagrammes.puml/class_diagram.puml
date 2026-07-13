@@ -1,0 +1,249 @@
+@startuml class_diagram
+skinparam classAttributeIconSize 0
+
+abstract class Utilisateur {
+  - idUtilisateur : int
+  - nom : string
+  - prenom : string
+  - email : string
+  - motDePasse : string
+  - telephone : string
+  - adresse : string
+  - latitude : decimal
+  - longitude : decimal
+  - role : string
+  - statut : string
+  + seConnecter()
+  + modifierProfil()
+}
+
+class Eleveur {
+  - nomExploitation : string
+  - certificatChemin : string
+  - noteMoyenne : decimal
+  - nombreAvis : int
+  + publierAnnonce()
+  + demanderRendezVous()
+}
+class Acheteur {
+  - typeAcheteur : string
+  + passerCommande()
+}
+class VendeurProvende {
+  - nomBoutique : string
+  - certificatChemin : string
+  - noteMoyenne : decimal
+  - nombreAvis : int
+  + publierAnnonce()
+}
+class VendeurAccessoire {
+  - nomBoutique : string
+  - certificatChemin : string
+  - noteMoyenne : decimal
+  - nombreAvis : int
+  + publierAnnonce()
+}
+class Veterinaire {
+  - specialite : string
+  - zoneIntervention : string
+  - certificatChemin : string
+  - noteMoyenne : decimal
+  - nombreAvis : int
+  + gererServices()
+  + confirmerRendezVous()
+  + souscrireAbonnement()
+}
+class Livreur {
+  - moyenTransport : string
+  - zoneCouverture : string
+  + gererPlanning()
+  + assurerLivraison()
+}
+class Administrateur {
+  + modererAnnonce()
+  + publierActualite()
+  + gererUtilisateurs()
+}
+
+note right of Utilisateur
+  latitude / longitude : coordonnées GPS
+  communes à tous les rôles, portées une
+  seule fois par la classe mère et héritées
+  par chaque sous-classe (pas de duplication).
+end note
+
+Utilisateur <|-- Eleveur
+Utilisateur <|-- Acheteur
+Utilisateur <|-- VendeurProvende
+Utilisateur <|-- VendeurAccessoire
+Utilisateur <|-- Veterinaire
+Utilisateur <|-- Livreur
+Utilisateur <|-- Administrateur
+
+class Annonce {
+  - idAnnonce : int
+  - typeAnnonce : string
+  - titre : string
+  - description : string
+  - prixUnitaire : float
+  - quantite : int
+  - poids : float
+  - mois : int
+  - uniteDeMesure : string
+  - image1 : string
+  - image2 : string
+  - statut : string
+  - motifRejet : string
+  - etat : string
+  + publier()
+  + approuver()
+  + rejeter(motif)
+}
+class ReductionAnnonce {
+  - idReduction : int
+  - quantiteMin : int
+  - quantiteMax : int
+  - pourcentageReduction : decimal
+}
+class Abonnement {
+  - idAbonnement : int
+  - formule : string
+  - dateDebut : date
+  - dateExpiration : date
+  - statut : string
+  + renouveler()
+}
+class Commande {
+  - idCommande : int
+  - quantite : int
+  - prixUnitaire : float
+  - montantTotal : float
+  - reductionSurCommande : float
+  - montantNetCommande : float
+  - statut : string
+  - motifDeRejet : string
+  - description : string
+  - noteClientCommande : int
+  - avisClientCommande : string
+  - codeAuthenticite : string
+  + payer()
+  + valider()
+  + annuler()
+  + refuser(motif)
+  + confirmer(codeScanne)
+}
+class Paiement {
+  - idPaiement : int
+  - montantNetCommande : float
+  - montantNetLivraison : float
+  - totalGeneral : float
+  - moyenDePaiement : string
+  - numeroDeCompte : string
+  - commissionSurCommande : float
+  - commissionSurLivraison : float
+  - totalCommission : float
+  - montantAVerserAuFournisseur : float
+  - montantAVerserAuLivreur : float
+  - statutPaiement : string
+  + encaisser()
+  + rembourser()
+}
+class Livraison {
+  - idLivraison : int
+  - adresseFournisseur : string
+  - adresseClient : string
+  - fraisDeLivraison : float
+  - reductionSurFrais : float
+  - montantNetLivraison : float
+  - statut : string
+  - verificationAuthenticite : string
+  - description : string
+  - noteClientLivraison : int
+  - avisClientLivraison : string
+  + prendreEnCharge()
+  + terminer()
+  + verifierQRCode(code)
+}
+class PlanningLivreur {
+  - idPlanning : int
+  - dateDebut : datetime
+  - dateFin : datetime
+  - disponible : bool
+}
+class ReductionLivraison {
+  - idReduction : int
+  - quantiteMin : int
+  - quantiteMax : int
+  - pourcentageReduction : decimal
+}
+class Versement {
+  - idVersement : int
+  - typeBeneficiaire : string
+  - montantVerser : float
+  - moyenDeVersement : string
+  - numeroDeCompte : string
+  - statutVersement : string
+  + executer()
+}
+class ServiceVeterinaire {
+  - idService : int
+  - titreService : string
+  - description : string
+  - prix : float
+  - tempsTraitement : int
+  - photoIllustrative : string
+  - statutService : string
+}
+class RendezVous {
+  - idRdv : int
+  - sujet : string
+  - description : string
+  - datePrevue : date
+  - statut : string
+  - image1 : string
+  - image2 : string
+  - video : string
+  - noteClient : int
+  - avisClient : string
+  + confirmer()
+  + refuser()
+  + realiser()
+}
+class Notification {
+  - idNotification : int
+  - contenu : string
+  - type : string
+  - lu : bool
+  - dateCreation : datetime
+}
+class Actualite {
+  - idActualite : int
+  - titre : string
+  - contenu : text
+  - datePublication : date
+}
+
+Eleveur "1" -- "0..*" Annonce : publie
+VendeurProvende "1" -- "0..*" Annonce : publie
+VendeurAccessoire "1" -- "0..*" Annonce : publie
+Annonce "1" -- "0..*" ReductionAnnonce : definit
+Veterinaire "1" -- "0..*" Abonnement : souscrit
+Veterinaire "1" -- "0..*" ServiceVeterinaire : propose
+
+Acheteur "1" -- "0..*" Commande : passe
+Annonce "1" -- "0..*" Commande : concerne
+Commande "1" -- "1" Paiement : declenche
+Commande "1" -- "0..1" Livraison : genere
+Livreur "0..1" -- "0..*" Livraison : assure
+Livreur "1" -- "0..*" PlanningLivreur : definit
+Livreur "1" -- "0..*" ReductionLivraison : definit
+Paiement "1" -- "0..*" Versement : genere
+Commande "1" -- "0..*" Versement : concerne
+
+Eleveur "1" -- "0..*" RendezVous : demande
+Veterinaire "1" -- "0..*" RendezVous : honore
+ServiceVeterinaire "0..1" -- "0..*" RendezVous : concerne
+
+Utilisateur "1" -- "0..*" Notification : recoit
+Utilisateur "1" -- "0..*" Actualite : publie {rôle ≠ acheteur}
+@enduml

@@ -1,0 +1,80 @@
+@startuml act_passer_commande
+|Acheteur|
+start
+:Consulter une annonce visible, choisir une quantité\net choisir son mode de retrait\n(livraison par un livreur ou retrait direct);
+|Système ElevConnect|
+:Vérifier la disponibilité et calculer
+le montant net (réduction selon le barème
+de l'annonce);
+if (Quantité disponible ?) then (non)
+  :Notifier l'acheteur (stock épuisé);
+  stop
+else (oui)
+endif
+:Générer le code d'authenticité (QR code)
+et enregistrer la commande (statut = en_attente);
+|Acheteur|
+:Effectuer le paiement
+(mobile money / carte bancaire);
+|Système ElevConnect|
+:Séquestrer les fonds et mettre à jour
+le statut (payée);
+:Notifier le fournisseur;
+:Mettre à jour le statut (en_cours_de_traitement);
+|Fournisseur|
+:Consulter la commande reçue;
+if (Commande acceptée ?) then (non)
+  |Système ElevConnect|
+  :Mettre à jour le statut (refusée)
+  et déclencher le remboursement de l'acheteur;
+  stop
+else (oui)
+  |Fournisseur|
+  :Valider la commande;
+endif
+|Système ElevConnect|
+:Mettre à jour le statut (validée);
+if (L'acheteur a-t-il choisi la livraison ?) then (oui)
+  :Notifier les livreurs disponibles
+  selon leur planning;
+  |Livreur|
+  :Prendre en charge la livraison
+  (ou la rejeter si indisponible);
+  |Système ElevConnect|
+  :Mettre à jour le statut de la commande
+  (en_cours_de_livraison) et de la livraison (en_cours);
+  |Livreur|
+  :Livrer la commande et cliquer sur « Livraison »
+  pour afficher le QR code de la commande;
+  |Système ElevConnect|
+  :Mettre à jour le statut (livrée);
+  |Acheteur|
+  :Scanner le QR code présenté par le livreur;
+  |Système ElevConnect|
+  if (Code QR authentique ?) then (non)
+    :Marquer la vérification d'authenticité
+    comme échouée et notifier les parties;
+    stop
+  else (oui)
+    :Marquer la commande (confirmée),
+    la livraison (terminée) et
+    l'authenticité (vérifiée);
+  endif
+else (non, retrait direct)
+  |Acheteur|
+  :Se rendre chez le fournisseur et confirmer
+  la réception en main propre
+  (aucune vérification par QR code,
+  ce mécanisme ne s'appliquant qu'en
+  présence d'un livreur intermédiaire);
+  |Système ElevConnect|
+  :Marquer la commande (confirmée);
+endif
+|Système ElevConnect|
+:Déclencher les versements
+(fournisseur, puis livreur le cas échéant);
+|Acheteur|
+:Laisser une note et un avis sur
+la commande et, le cas échéant, sur la livraison;
+stop
+@enduml
