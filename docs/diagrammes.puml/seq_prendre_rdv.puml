@@ -56,7 +56,7 @@ control "ElevConnect" as APP
 database "Base de données" as DB
 actor Vétérinaire as VET
 
-title Rendez-vous vétérinaire — vue simplifiée
+title Rendez-vous vétérinaire 
 
 ELE -> UI : choisit un service et un créneau
 UI -> APP : demanderRendezVous()

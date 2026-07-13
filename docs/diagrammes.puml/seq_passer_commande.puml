@@ -57,7 +57,7 @@ database "Base de données" as DB
 actor Fournisseur as FOUR
 actor Livreur as LIV
 
-title Commande et réception — vue simplifiée
+title Commande et réception 
 
 ACH -> UI : choisit l'annonce et le retrait
 UI -> APP : créerCommande(annonce, quantité, mode)

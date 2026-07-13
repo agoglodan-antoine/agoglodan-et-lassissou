@@ -58,7 +58,7 @@ database "Base de données" as DB
 actor Fournisseur as FOUR
 actor Livreur as LIV
 
-title Paiement, séquestre et versements — vue simplifiée
+title Paiement, séquestre et versements 
 
 ACH -> UI : confirme le paiement
 UI -> PAY : initierPaiement(commande, moyen)

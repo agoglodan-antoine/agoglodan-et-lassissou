@@ -49,7 +49,7 @@ skinparam SequenceActorBorderColor #2F7D5B
 skinparam SequenceGroupBackgroundColor #F7FBFD
 skinparam SequenceGroupBorderColor #9CB4C1
 
-title Cycle de vie d'une commande — vue simplifiée
+title Cycle de vie d'une commande 
 
 [*] --> EnAttente : création
 EnAttente --> Payee : paiement accepté

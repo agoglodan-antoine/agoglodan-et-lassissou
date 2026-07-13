@@ -52,7 +52,7 @@ skinparam SequenceGroupBorderColor #9CB4C1
 left to right direction
 hide empty members
 skinparam classAttributeIconSize 0
-title Modèle métier d'ElevConnect — vue simplifiée
+title Modèle métier d'ElevConnect 
 
 class Utilisateur {
   id

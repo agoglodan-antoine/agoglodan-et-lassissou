@@ -50,7 +50,7 @@ skinparam SequenceGroupBackgroundColor #F7FBFD
 skinparam SequenceGroupBorderColor #9CB4C1
 
 top to bottom direction
-title Modèle conceptuel de données — vue simplifiée
+title Modèle conceptuel de données 
 
 entity UTILISATEUR {
   * id_utilisateur

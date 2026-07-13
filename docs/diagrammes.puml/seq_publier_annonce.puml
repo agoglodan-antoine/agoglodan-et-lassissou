@@ -56,7 +56,7 @@ control "ElevConnect" as APP
 database "Base de données" as DB
 actor Administrateur as ADM
 
-title Publication d'une annonce — vue simplifiée
+title Publication d'une annonce 
 
 FOUR -> UI : saisit l'annonce
 UI -> APP : soumettreAnnonce(données)

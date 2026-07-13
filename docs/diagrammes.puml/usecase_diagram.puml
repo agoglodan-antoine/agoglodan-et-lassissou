@@ -50,7 +50,7 @@ skinparam SequenceGroupBackgroundColor #F7FBFD
 skinparam SequenceGroupBorderColor #9CB4C1
 
 left to right direction
-title Cas d'utilisation d'ElevConnect — vue simplifiée
+title Cas d'utilisation d'ElevConnect 
 
 actor "Utilisateur" as USER
 actor "Acheteur" as BUYER
