@@ -1,42 +1,31 @@
 @startuml act_publier_annonce
-|Fournisseur\n(Éleveur / Vendeur de provende / Vendeur d'accessoires)|
-start
-:Se connecter à la plateforme;
-:Remplir le formulaire d'annonce
-(titre, description, prix unitaire, quantité,
-image_1 obligatoire, image_2 optionnelle,
-+ champs spécifiques selon le rôle :
-poids/mois si animal, unité de mesure si provende);
-:Définir, si souhaité, un barème de réduction
-par tranche de quantité;
-|Système ElevConnect|
-:Contrôler la validité des données saisies;
-if (Données valides ?) then (non)
-  |Fournisseur|
-  -> Remplir le formulaire d'annonce;
-else (oui)
-  |Système ElevConnect|
-  :Déduire type_annonce du rôle de l'auteur
-  (animal / provende / accessoire);
-  :Enregistrer l'annonce (statut = en_attente);
-  :Notifier l'administrateur;
-endif
-|Administrateur|
-:Examiner l'annonce en attente;
-if (Annonce conforme ?) then (non)
-  :Rejeter l'annonce et préciser le motif;
-  |Système ElevConnect|
-  :Mettre à jour le statut (rejetee)
-  et notifier le fournisseur du motif;
-  stop
-else (oui)
-  :Approuver l'annonce;
-endif
-|Système ElevConnect|
-:Mettre à jour le statut (visible)
-et notifier le fournisseur;
-:Publier l'annonce dans le catalogue public;
+!include diagram_style.iuml
+
+title Publier une annonce — vue simplifiée
+
 |Fournisseur|
-:Consulter l'annonce désormais visible;
+start
+:Remplir l'annonce
+et le barème de réduction;
+|Système ElevConnect|
+:Contrôler les informations;
+if (Données valides ?) then (oui)
+  :Enregistrer l'annonce
+« en attente »;
+  |Administrateur|
+  :Examiner l'annonce;
+  if (Annonce conforme ?) then (oui)
+    |Système ElevConnect|
+    :Rendre l'annonce visible
+et notifier le fournisseur;
+  else (non)
+    |Système ElevConnect|
+    :Rejeter l'annonce,
+indiquer le motif et notifier;
+  endif
+else (non)
+  |Fournisseur|
+  :Corriger les informations;
+endif
 stop
 @enduml

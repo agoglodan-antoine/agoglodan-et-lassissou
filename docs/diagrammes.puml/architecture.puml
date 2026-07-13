@@ -1,27 +1,20 @@
 @startuml architecture
-' ============================================================
-' ElevConnect — Architecture logicielle 3-tiers (MVC Laravel)
-' Chapitre 4, section III — version simplifiée, sans couleur
-' ============================================================
-skinparam backgroundColor #FFFFFF
-skinparam roundcorner 8
-skinparam shadowing false
-skinparam defaultFontName Helvetica
-skinparam defaultFontSize 12
-skinparam monochrome true
+!include diagram_style.iuml
 
-title Architecture logicielle 3-tiers d'ElevConnect (MVC Laravel)
+top to bottom direction
+title Architecture simplifiée d'ElevConnect
 
-rectangle "COUCHE PRÉSENTATION\nNavigateur / Client\n\nVues Blade (HTML5, CSS3, Tailwind CSS,\nJavaScript) — scan de QR code côté client\n(pas d'intégration WhatsApp Business)" as PRES
+rectangle "**Présentation**\nNavigateur web\nBlade · Tailwind · JavaScript" as CLIENT #EAF4F8
+rectangle "**Application ElevConnect**\nLaravel : routes, contrôleurs, règles métier\nNotifications · QR code · paiements" as APP #EAF4EA
+database "**Données**\nMySQL" as DB #FFF8E8
+cloud "**Services externes**\nMobile Money · Carte bancaire" as PAYMENT #F5EEF9
 
-rectangle "COUCHE MÉTIER / APPLICATION\nServeur Laravel 13 (PHP 8.3.14) sur WampServer (environnement local)\n\nRoutes → Contrôleurs → Form Requests\n→ Middlewares (auth, rôle, CSRF) → Modèles Eloquent\n\nServices : notifications, moteur de statuts (annonce, commande,\nlivraison), génération/vérification QR code, calcul des\ncommissions et des versements, tâches planifiées" as APP
+CLIENT --> APP : HTTPS
+APP --> DB : Eloquent / SQL
+APP --> PAYMENT : encaissements\net versements
 
-rectangle "COUCHE DONNÉES\nSGBD MySQL\n\nBase de données (22 tables)\nMoteur InnoDB — charset utf8mb4" as DATA
-
-rectangle "SERVICES EXTERNES\nPasserelle de paiement\n(Mobile Money / Carte bancaire)" as EXT
-
-PRES -down-> APP : Requêtes / réponses HTTP (HTTPS)
-APP -down-> DATA : Eloquent ORM (requêtes SQL paramétrées)
-APP -right-> EXT : Encaissement (séquestre) et\nversements (fournisseur, livreur)
-
+note right of APP
+  L'application orchestre les annonces,
+  commandes, livraisons et rendez-vous.
+end note
 @enduml

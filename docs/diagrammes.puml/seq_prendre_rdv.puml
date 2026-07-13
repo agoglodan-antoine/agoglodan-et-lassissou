@@ -1,41 +1,35 @@
 @startuml seq_prendre_rdv
-actor "Éleveur" as Ele
-participant "Interface" as UI
-participant "ContrôleurRDV" as Ctrl
+!include diagram_style.iuml
+
+autonumber
+actor Éleveur as ELE
+boundary "Interface web" as UI
+control "ElevConnect" as APP
 database "Base de données" as DB
-actor "Vétérinaire" as Vet
+actor Vétérinaire as VET
 
-Ele -> UI : consulte les services d'un vétérinaire
-UI -> Ctrl : listerServices(id_veterinaire)
-Ctrl -> DB : SELECT services_veterinaires
-DB --> Ctrl : liste des services et tarifs
-Ctrl --> UI : affiche services + étoiles + certificat
+title Rendez-vous vétérinaire — vue simplifiée
 
-Ele -> UI : sélectionne service + créneau
-UI -> Ctrl : demanderRendezVous(id_vet, id_service, date)
-Ctrl -> DB : INSERT rendez_vous (en_attente)
-DB --> Ctrl : confirmation (id_rdv)
-Ctrl -> Vet : notification(nouvelle demande de RDV)
+ELE -> UI : choisit un service et un créneau
+UI -> APP : demanderRendezVous()
+APP -> DB : enregistre la demande
+APP -> VET : notifie la demande
 
-Vet -> UI : consulte et traite la demande
-UI -> Ctrl : traiterRendezVous(id_rdv, decision)
-alt décision = confirmer
-  Ctrl -> DB : UPDATE statut = confirme
-  Ctrl -> Ele : notification(RDV confirmé)
-else décision = refuser
-  Ctrl -> DB : UPDATE statut = refuse
-  Ctrl -> Ele : notification(RDV refusé)
+VET -> UI : confirme ou refuse
+UI -> APP : traiterRendezVous(décision)
+APP -> DB : met à jour le statut
+APP -> ELE : notifie la décision
+
+opt rendez-vous confirmé
+  VET -> UI : clôture le rendez-vous
+  UI -> APP : marquerRéalisé()
+  APP -> DB : enregistre la réalisation
+  ELE -> UI : laisse un avis
+  UI -> APP : enregistrerAvis()
 end
 
-note over Ele, Vet
-  Le paiement du service se fait directement
-  entre l'éleveur et le vétérinaire, hors plateforme
+note over ELE, VET
+  Le règlement se fait directement
+  entre l'éleveur et le vétérinaire.
 end note
-
-Vet -> UI : marque le rendez-vous comme réalisé
-UI -> Ctrl : cloturerRendezVous(id_rdv, medias)
-Ctrl -> DB : UPDATE statut = realise, images, video
-Ele -> UI : laisse une note et un avis
-UI -> Ctrl : noterRendezVous(id_rdv, note, avis)
-Ctrl -> DB : UPDATE note_client, avis_client
 @enduml

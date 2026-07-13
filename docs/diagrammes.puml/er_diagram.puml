@@ -1,182 +1,92 @@
 @startuml er_diagram
-' Modèle Entité-Relation (MCD, formalisme Merise) - représenté en notation
-' PlantUML "class" avec associations et cardinalités Merise (x,y)
-' Mis à jour selon le schéma v4 (instructions.txt)
+!include diagram_style.iuml
+
+top to bottom direction
+title Modèle conceptuel de données — vue simplifiée
 
 entity UTILISATEUR {
   * id_utilisateur
   --
   nom
-  prenom
   email
   role
-  statut
-  latitude
-  longitude
 }
-
-entity ABONNEMENT {
-  * id_abonnement
-  --
-  formule
-  date_debut
-  date_expiration
-  statut
-}
-
-entity SERVICE_VETERINAIRE {
-  * id_service
-  --
-  titre_service
-  prix
-  temps_traitement
-  statut_service
-}
-
-entity RENDEZ_VOUS {
-  * id_rdv
-  --
-  sujet
-  description
-  date_prevue
-  statut
-  note_client
-  avis_client
-}
-
 entity ANNONCE {
   * id_annonce
   --
-  type_annonce
-  titre
-  prix_unitaire
+  type
+  prix
   quantite
   statut
-  motif_rejet
-  etat
 }
-
 entity REDUCTION_ANNONCE {
   * id_reduction
   --
-  quantite_min
-  quantite_max
-  pourcentage_reduction
+  seuil_quantite
+  pourcentage
 }
-
 entity COMMANDE {
   * id_commande
   --
   quantite
-  prix_unitaire
-  montant_total
-  reduction_sur_commande
-  montant_net_commande
+  montant_net
+  mode_retrait
   statut
-  code_authenticite
 }
-
 entity PAIEMENT {
   * id_paiement
   --
-  total_general
-  moyen_de_paiement
-  total_commission
-  statut_paiement
+  total
+  moyen
+  statut
 }
-
 entity LIVRAISON {
   * id_livraison
   --
-  adresse_fournisseur
-  adresse_client
-  montant_net_livraison
   statut
-  verification_authenticite
-  note_client_livraison
-  avis_client_livraison
+  verification_qr
 }
-
-entity PLANNING_LIVREUR {
-  * id_planning
-  --
-  date_debut
-  date_fin
-  disponible
-}
-
-entity REDUCTION_LIVRAISON {
-  * id_reduction
-  --
-  quantite_min
-  quantite_max
-  pourcentage_reduction
-}
-
 entity VERSEMENT {
   * id_versement
   --
-  type_beneficiaire
-  montant_verser
-  moyen_de_versement
-  statut_versement
+  montant
+  statut
 }
-
+entity SERVICE_VETERINAIRE {
+  * id_service
+  --
+  titre
+  prix
+}
+entity RENDEZ_VOUS {
+  * id_rdv
+  --
+  date_prevue
+  statut
+}
 entity NOTIFICATION {
   * id_notification
   --
   contenu
-  type
   lu
 }
 
-entity ACTUALITE {
-  * id_actualite
-  --
-  titre
-  contenu
-  date_publication
-}
+UTILISATEUR "1,1" -- "0,n" ANNONCE : publie (fournisseur)
+ANNONCE "1,1" -- "0,n" REDUCTION_ANNONCE : définit
+UTILISATEUR "1,1" -- "0,n" COMMANDE : passe (acheteur)
+ANNONCE "1,1" -- "0,n" COMMANDE : concerne
+COMMANDE "1,1" -- "0,1" PAIEMENT : règle
+COMMANDE "1,1" -- "0,1" LIVRAISON : génère
+UTILISATEUR "0,1" -- "0,n" LIVRAISON : assure (livreur)
+PAIEMENT "1,1" -- "1,n" VERSEMENT : génère
+UTILISATEUR "1,1" -- "0,n" VERSEMENT : bénéficie
+UTILISATEUR "1,1" -- "0,n" SERVICE_VETERINAIRE : propose (vétérinaire)
+SERVICE_VETERINAIRE "1,1" -- "0,n" RENDEZ_VOUS : concerne
+UTILISATEUR "1,1" -- "0,n" RENDEZ_VOUS : demande (éleveur)
+UTILISATEUR "1,1" -- "0,n" NOTIFICATION : reçoit
 
-UTILISATEUR "1,1" -- "0,n" ABONNEMENT : SOUSCRIRE
-note on link
-  Réservé au rôle vétérinaire
-end note
-UTILISATEUR "1,1" -- "0,n" SERVICE_VETERINAIRE : PROPOSER
-UTILISATEUR "1,1" -- "0,n" RENDEZ_VOUS : DEMANDER
-UTILISATEUR "1,1" -- "0,n" RENDEZ_VOUS : HONORER
-SERVICE_VETERINAIRE "0,1" -- "0,n" RENDEZ_VOUS : CONCERNER
-
-UTILISATEUR "1,1" -- "0,n" ANNONCE : PUBLIER
-note on link
-  Rôle = éleveur, vendeur_provende
-  ou vendeur_accessoire (trigger SQL)
-end note
-ANNONCE "1,1" -- "0,n" REDUCTION_ANNONCE : DEFINIR
-
-UTILISATEUR "1,1" -- "0,n" COMMANDE : PASSER
-ANNONCE "1,1" -- "0,n" COMMANDE : CONCERNER
-COMMANDE "1,1" -- "0,1" PAIEMENT : GENERER
-COMMANDE "1,1" -- "0,1" LIVRAISON : PRODUIRE
-note on link
-  Livraison optionnelle : l'acheteur peut
-  choisir le retrait direct auprès du
-  fournisseur, auquel cas aucune ligne
-  LIVRAISON n'est créée
-end note
-
-UTILISATEUR "0,1" -- "0,n" LIVRAISON : ASSURER
-UTILISATEUR "1,1" -- "0,n" PLANNING_LIVREUR : DEFINIR
-UTILISATEUR "1,1" -- "0,n" REDUCTION_LIVRAISON : DEFINIR
-
-PAIEMENT "1,1" -- "0,n" VERSEMENT : GENERER
-COMMANDE "1,1" -- "0,n" VERSEMENT : CONCERNER
-UTILISATEUR "1,1" -- "0,n" VERSEMENT : BENEFICIER
-
-UTILISATEUR "1,1" -- "0,n" NOTIFICATION : RECEVOIR
-UTILISATEUR "1,1" -- "0,n" ACTUALITE : PUBLIER_ACTU
-note on link
-  Rôle ≠ acheteur
-  (contrôlé par trigger SQL)
+note bottom of LIVRAISON
+  Optionnelle : absente si le retrait
+  direct a été choisi par l'acheteur.
 end note
 @enduml

@@ -1,60 +1,41 @@
 @startuml seq_paiement_versement
-' Diagramme de séquence manquant : détail du séquestre, de la vérification
-' d'authenticité par QR code et des versements (instructions.txt, sections
-' III, IV et VI) — non couvert par seq_passer_commande (vue d'ensemble).
+!include diagram_style.iuml
 
-actor "Acheteur" as Ach
-participant "Interface" as UI
-participant "ContrôleurPaiement" as CtrlP
-participant "Passerelle de paiement\n(Mobile Money / Carte)" as Gateway
+autonumber
+actor Acheteur as ACH
+boundary "Interface web" as UI
+control "Service paiement" as PAY
+participant "Passerelle de paiement" as GATE
 database "Base de données" as DB
-actor "Fournisseur" as Four
-actor "Livreur" as Liv
+actor Fournisseur as FOUR
+actor Livreur as LIV
 
-== Paiement et séquestre ==
-Ach -> UI : valide le paiement de la commande
-UI -> CtrlP : initierPaiement(id_commande, moyen, numero_compte)
-CtrlP -> Gateway : débiter total_general
-Gateway --> CtrlP : transaction acceptée
-CtrlP -> CtrlP : calculer commission_sur_commande (5%),\ncommission_sur_livraison (5%), total_commission
-CtrlP -> DB : INSERT paiement (statut_paiement = reussi)
-CtrlP -> DB : UPDATE commande (statut = payee)
-CtrlP -> Four : notification(paiement reçu, fonds séquestrés)
+title Paiement, séquestre et versements — vue simplifiée
 
-== Vérification à la réception (selon le mode de retrait choisi à la commande) ==
-alt l'acheteur avait choisi la livraison
-  Liv -> UI : clique sur « Livraison » (affiche le QR code)
-  Ach -> UI : clique sur « Confirmer » et scanne le QR code
-  UI -> CtrlP : verifierQRCode(id_commande, code_scanne)
-  CtrlP -> DB : SELECT code_authenticite WHERE id_commande
-  DB --> CtrlP : code_authenticite attendu
-  alt code identique
-    CtrlP -> DB : UPDATE livraison (verification_authenticite = verifiee,\nstatut = terminee)
-    CtrlP -> DB : UPDATE commande (statut = confirmee)
-  else code différent
-    CtrlP -> DB : UPDATE livraison (verification_authenticite = echoue)
-    CtrlP --> UI : alerte de falsification
-  end
-else l'acheteur avait choisi le retrait direct
-  Ach -> UI : confirme la réception en main propre\n(aucune vérification par QR code)
-  UI -> CtrlP : confirmerReceptionDirecte(id_commande)
-  CtrlP -> DB : UPDATE commande (statut = confirmee)
-end
+ACH -> UI : confirme le paiement
+UI -> PAY : initierPaiement(commande, moyen)
+PAY -> GATE : débiter le total
+GATE --> PAY : paiement accepté
+PAY -> DB : enregistre le paiement séquestré
+PAY -> FOUR : notifie le paiement reçu
 
-== Versements ==
-CtrlP -> DB : montant_a_verser_au_fournisseur\n= montant_net_commande - commission_sur_commande
-CtrlP -> DB : INSERT versement (type_beneficiaire = fournisseur)
-CtrlP -> Gateway : créditer le fournisseur
-Gateway --> CtrlP : versement réussi
-CtrlP -> DB : UPDATE versement (statut_versement = reussi)
-CtrlP -> Four : notification(montant versé)
+note over ACH, LIV
+  Le versement intervient après la confirmation
+  de la réception de la commande.
+end note
 
-alt un livreur est intervenu
-  CtrlP -> DB : montant_a_verser_au_livreur\n= montant_net_livraison - commission_sur_livraison
-  CtrlP -> DB : INSERT versement (type_beneficiaire = livreur)
-  CtrlP -> Gateway : créditer le livreur
-  Gateway --> CtrlP : versement réussi
-  CtrlP -> DB : UPDATE versement (statut_versement = reussi)
-  CtrlP -> Liv : notification(frais de transport versés)
+ACH -> UI : confirme la réception
+UI -> PAY : libérerFonds()
+PAY -> DB : confirme la commande
+PAY -> GATE : créditer le fournisseur
+GATE --> PAY : versement réussi
+PAY -> DB : enregistre le versement fournisseur
+PAY -> FOUR : notifie le versement
+
+opt une livraison a été effectuée
+  PAY -> GATE : créditer le livreur
+  GATE --> PAY : versement réussi
+  PAY -> DB : enregistre le versement livreur
+  PAY -> LIV : notifie le versement
 end
 @enduml

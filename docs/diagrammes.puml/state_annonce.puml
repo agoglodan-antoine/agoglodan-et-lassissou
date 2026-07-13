@@ -1,35 +1,20 @@
 @startuml state_annonce
-' Diagramme d'état manquant : cycle de vie d'une ANNONCE
-' (modération administrateur — instructions.txt, section II-b)
+!include diagram_style.iuml
 
-[*] --> en_attente : le fournisseur publie l'annonce
+title Cycle de vie d'une annonce — vue simplifiée
 
-en_attente --> visible : l'administrateur approuve
-en_attente --> rejetee : l'administrateur désapprouve\n(motif renseigné)
+[*] --> EnAttente : soumission
+EnAttente --> Visible : approbation
+EnAttente --> Rejetee : rejet + motif
+Visible --> [*] : publication terminée
+Rejetee --> [*]
 
-visible --> [*]
-rejetee --> [*]
+state EnAttente as "En attente\nde modération"
+state Visible as "Visible\ndans le catalogue"
+state Rejetee as "Rejetée"
 
-state en_attente as "en attente"
-state visible as "visible"
-state rejetee as "rejetee"
-
-note right of visible
-  Une notification est envoyée au fournisseur :
-  « votre annonce est approuvée et désormais
-  visible sur ElevConnect »
+note right of EnAttente
+  L'administrateur contrôle
+  la conformité de l'annonce.
 end note
-note right of rejetee
-  Une notification est envoyée au fournisseur :
-  « votre annonce a été rejetée pour faute de ... »
-end note
-
-state "Disponibilité commerciale (etat)" as ETAT {
-  [*] --> disponible
-  disponible --> stock_epuise : quantité écoulée
-  stock_epuise --> disponible : réapprovisionnement
-  state disponible as "disponible"
-  state stock_epuise as "stock épuisé"
-}
-visible --> ETAT : dès que l'annonce est visible
 @enduml

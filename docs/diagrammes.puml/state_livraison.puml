@@ -1,33 +1,24 @@
 @startuml state_livraison
-' Diagramme d'état manquant : cycle de vie de la LIVRAISON
-' (intervention optionnelle du livreur — instructions.txt, section V)
+!include diagram_style.iuml
 
-[*] --> en_attente : la commande est validée\net un livreur est sollicité
+title Cycle de vie d'une livraison — vue simplifiée
 
-en_attente --> prise_en_charge : un livreur accepte
-en_attente --> rejetee : le livreur n'est pas disponible\n(ou autre raison)
+[*] --> EnAttente : commande validée
+EnAttente --> PriseEnCharge : livreur accepte
+EnAttente --> NonAssignee : aucun livreur disponible
+PriseEnCharge --> EnCours : départ du livreur
+EnCours --> AConfirmer : commande remise
+AConfirmer --> Terminee : QR code validé
+AConfirmer --> Incident : QR code invalide
+Terminee --> [*]
+NonAssignee --> [*]
+Incident --> [*]
 
-prise_en_charge --> en_cours : le livreur démarre le transport
-
-en_cours --> terminee : remise au client et\nscan du QR code réussi
-
-terminee --> [*]
-rejetee --> [*] : la commande peut être\nréaffectée à un autre livreur
-
-state en_attente as "en attente"
-state prise_en_charge as "prise en charge"
-state en_cours as "en cours"
-state terminee as "terminée"
-state rejetee as "rejetee"
-
-state "Vérification d'authenticité" as VERIF {
-  [*] --> attente_scan
-  attente_scan --> verifiee : QR code identique à celui\nde la commande
-  attente_scan --> echouee : QR code non identique
-  state attente_scan as "en attente"
-  state verifiee as "vérifiée"
-  state echouee as "échoué"
-}
-en_cours --> VERIF : le livreur affiche le QR code,\nle client scanne
-VERIF --> terminee : verifiee
+state EnAttente as "En attente"
+state PriseEnCharge as "Prise en charge"
+state EnCours as "En cours"
+state AConfirmer as "À confirmer"
+state Terminee as "Terminée"
+state NonAssignee as "Non assignée"
+state Incident as "Incident à traiter"
 @enduml
