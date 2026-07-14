@@ -7,8 +7,10 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Commandes passées sur les annonces.
  * Cycle de vie : en_attente -> payee -> en_cours_de_traitement -> validee
- * -> en_cours_de_livraison -> livree -> confirmee
+ * -> [en_cours_de_livraison -> livree] -> confirmee
  * (annulee possible avant validee ; refusee/en_litige possibles entre livree et confirmee).
+ * L'étape [en_cours_de_livraison -> livree] est sautée lorsque l'acheteur a
+ * choisi un retrait direct (aucun livreur) — voir id_livreur_souhaite.
  */
 return new class extends Migration
 {
@@ -33,6 +35,9 @@ return new class extends Migration
             $table->text('avis_client_commande')->nullable();
             $table->string('code_authenticite', 64)->unique()
                 ->comment('Code encodé dans le QR code, scanné à la livraison');
+            // Livreur choisi par l'acheteur à la commande (intervention optionnelle,
+            // cf. cahier des charges) ; null = retrait direct, sans livreur.
+            $table->unsignedInteger('id_livreur_souhaite')->nullable();
             $table->dateTime('date_commande')->useCurrent();
             $table->timestamps();
             $table->softDeletes();
@@ -41,6 +46,8 @@ return new class extends Migration
                 ->restrictOnDelete()->cascadeOnUpdate();
             $table->foreign('id_acheteur')->references('id_utilisateur')->on('utilisateurs')
                 ->restrictOnDelete()->cascadeOnUpdate();
+            $table->foreign('id_livreur_souhaite')->references('id_utilisateur')->on('livreurs')
+                ->nullOnDelete()->cascadeOnUpdate();
             $table->index('statut', 'idx_commandes_statut');
             $table->index('id_acheteur', 'idx_commandes_acheteur');
         });

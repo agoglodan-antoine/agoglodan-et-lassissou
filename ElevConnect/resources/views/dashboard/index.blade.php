@@ -37,7 +37,7 @@
       @endif
 
       @if ($user->role === 'livreur')
-        <div class="stat-tile"><span class="form-hint">Livraisons disponibles</span><b>{{ $stats['livraisons_disponibles'] }}</b></div>
+        <div class="stat-tile"><span class="form-hint">Livraisons proposées</span><b>{{ $stats['livraisons_proposees'] }}</b></div>
         <div class="stat-tile"><span class="form-hint">Mes livraisons en cours</span><b>{{ $stats['mes_livraisons_en_cours'] }}</b></div>
       @endif
 
@@ -71,9 +71,9 @@
       @endif
 
       @if ($user->role === 'livreur')
-        <a href="{{ route('livraison.disponibles') }}" class="dash-card" style="margin-bottom:0;text-decoration:none;color:inherit;">
-          <b>Livraisons disponibles</b>
-          <p class="form-hint" style="margin-top:6px;">Accepter une nouvelle course.</p>
+        <a href="{{ route('livraison.proposees') }}" class="dash-card" style="margin-bottom:0;text-decoration:none;color:inherit;">
+          <b>Livraisons proposées</b>
+          <p class="form-hint" style="margin-top:6px;">Accepter ou refuser une livraison qui vous est assignée.</p>
         </a>
         <a href="{{ route('livraison.mes') }}" class="dash-card" style="margin-bottom:0;text-decoration:none;color:inherit;">
           <b>Mes livraisons</b>

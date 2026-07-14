@@ -47,7 +47,7 @@ class DashboardController extends Controller
         $stats['mes_commandes_total'] = $user->commandes()->count();
 
         if ($user->role === Utilisateur::ROLE_LIVREUR && $user->livreur) {
-            $stats['livraisons_disponibles'] = Livraison::whereNull('id_livreur')
+            $stats['livraisons_proposees'] = $user->livreur->livraisons()
                 ->where('statut', Livraison::STATUT_EN_ATTENTE)
                 ->count();
             $stats['mes_livraisons_en_cours'] = $user->livreur->livraisons()

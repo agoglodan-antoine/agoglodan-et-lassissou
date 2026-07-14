@@ -4,7 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-/** Livraison associée à une commande — intervention du livreur optionnelle. */
+/**
+ * Livraison associée à une commande — intervention du livreur optionnelle.
+ * Le livreur initialement assigné (id_livreur) est celui choisi par
+ * l'acheteur à la commande (COMMANDES.id_livreur_souhaite). En cas de
+ * refus, la livraison est reproposée à un autre livreur disponible
+ * (voir trouverProchainCandidat()) et livreurs_ayant_refuse conserve
+ * l'historique pour éviter une reproposition en double.
+ */
 class Livraison extends Model
 {
     protected $table = 'livraison';
@@ -20,12 +27,15 @@ class Livraison extends Model
         'id_commande', 'id_livreur', 'adresse_fournisseur', 'adresse_client',
         'frais_de_livraison', 'reduction_sur_frais', 'montant_net_livraison', 'statut',
         'verification_authenticite', 'date_verification_qr', 'description',
-        'note_client_livraison', 'avis_client_livraison',
+        'note_client_livraison', 'avis_client_livraison', 'livreurs_ayant_refuse',
     ];
 
     protected function casts(): array
     {
-        return ['date_verification_qr' => 'datetime'];
+        return [
+            'date_verification_qr' => 'datetime',
+            'livreurs_ayant_refuse' => 'array',
+        ];
     }
 
     public function commande() { return $this->belongsTo(Commande::class, 'id_commande'); }
@@ -49,5 +59,29 @@ class Livraison extends Model
             'reduction_sur_frais' => $montantReduction,
             'montant_net_livraison' => round($fraisBase - $montantReduction, 2),
         ];
+    }
+
+    /**
+     * Recherche le prochain livreur candidat le plus proche du point
+     * d'enlèvement (position du fournisseur), en excluant le livreur qui
+     * vient de refuser et tous ceux ayant déjà refusé cette livraison —
+     * cf. plan de test du mémoire : "livraison proposée à un autre livreur".
+     */
+    public function trouverProchainCandidat(float $latFournisseur, float $lngFournisseur): ?Livreur
+    {
+        $exclus = array_merge($this->livreurs_ayant_refuse ?? [], [$this->id_livreur]);
+
+        return Livreur::query()
+            ->join('utilisateurs', 'utilisateurs.id_utilisateur', '=', 'livreurs.id_utilisateur')
+            ->where('utilisateurs.statut', 'actif')
+            ->whereNotIn('livreurs.id_utilisateur', array_filter($exclus))
+            ->whereNotNull('utilisateurs.latitude')
+            ->whereNotNull('utilisateurs.longitude')
+            ->selectRaw('livreurs.*, (6371 * acos(
+                    cos(radians(?)) * cos(radians(utilisateurs.latitude)) * cos(radians(utilisateurs.longitude) - radians(?))
+                    + sin(radians(?)) * sin(radians(utilisateurs.latitude))
+                )) as distance_km', [$latFournisseur, $lngFournisseur, $latFournisseur])
+            ->orderBy('distance_km')
+            ->first();
     }
 }

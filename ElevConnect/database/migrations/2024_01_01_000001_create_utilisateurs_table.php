@@ -12,6 +12,12 @@ use Illuminate\Support\Facades\Schema;
  * stockée une seule fois ici plutôt que répétée dans chacune des 7 tables
  * de profil (ELEVEURS, ACHETEURS, VENDEUR_PROVENDE, VENDEUR_ACCESSOIRE,
  * VETERINAIRES, LIVREURS, ADMINISTRATEURS).
+ *
+ * Ces deux colonnes sont nullables en base : le formulaire d'inscription
+ * public (RegisterController) continue de les exiger pour un vrai compte,
+ * mais un compte peut aussi être créé sans position par un autre canal
+ * (seeder de test, création manuelle par un administrateur, etc.) sans
+ * faire échouer l'insertion.
  */
 return new class extends Migration
 {

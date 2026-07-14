@@ -35,7 +35,6 @@ class ActualiteController extends Controller
 
     public function create(Request $request): View
     {
-
         $this->authorize('create', Actualite::class);
 
         return view('actualites.create');

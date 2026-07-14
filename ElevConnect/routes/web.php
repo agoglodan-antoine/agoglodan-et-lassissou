@@ -7,7 +7,9 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AbonnementController;
 use App\Http\Controllers\ActualiteController;
 use App\Http\Controllers\AnnonceController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\CatalogueController;
 use App\Http\Controllers\CommandeController;
@@ -62,6 +64,11 @@ Route::middleware('guest')->group(function () {
     Route::post('/inscription', [RegisterController::class, 'register']);
     Route::get('/connexion', [LoginController::class, 'show'])->name('login');
     Route::post('/connexion', [LoginController::class, 'login']);
+
+    Route::get('/mot-de-passe-oublie', [ForgotPasswordController::class, 'show'])->name('password.request');
+    Route::post('/mot-de-passe-oublie', [ForgotPasswordController::class, 'send'])->name('password.email');
+    Route::get('/reinitialiser-mot-de-passe/{token}', [ResetPasswordController::class, 'show'])->name('password.reset');
+    Route::post('/reinitialiser-mot-de-passe', [ResetPasswordController::class, 'update'])->name('password.update');
 });
 
 Route::middleware('auth')->group(function () {
@@ -115,11 +122,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/mes-commandes/{commande}/paiement', [PaiementController::class, 'show'])->name('paiement.show');
     Route::post('/mes-commandes/{commande}/paiement', [PaiementController::class, 'process'])->name('paiement.process');
 
-    // Espace Livreur : livraisons disponibles et suivi des livraisons acceptées.
+    // Espace Livreur : livraisons qui lui sont proposées (assignées par l'acheteur) et suivi des livraisons acceptées.
     Route::prefix('mon-espace')->name('livraison.')->group(function () {
-        Route::get('/livraisons-disponibles', [LivraisonController::class, 'disponibles'])->name('disponibles');
+        Route::get('/livraisons-proposees', [LivraisonController::class, 'proposees'])->name('proposees');
         Route::get('/mes-livraisons', [LivraisonController::class, 'mesLivraisons'])->name('mes');
         Route::post('/livraisons/{livraison}/accepter', [LivraisonController::class, 'accepter'])->name('accepter');
+        Route::post('/livraisons/{livraison}/rejeter', [LivraisonController::class, 'rejeter'])->name('rejeter');
         Route::post('/livraisons/{livraison}/demarrer', [LivraisonController::class, 'demarrer'])->name('demarrer');
         Route::post('/livraisons/{livraison}/livrer', [LivraisonController::class, 'livrer'])->name('livrer');
     });

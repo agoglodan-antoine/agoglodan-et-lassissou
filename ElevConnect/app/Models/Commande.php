@@ -32,7 +32,7 @@ class Commande extends Model
         'id_annonce', 'id_acheteur', 'quantite', 'prix_unitaire', 'montant_total',
         'reduction_sur_commande', 'montant_net_commande', 'statut', 'motif_de_rejet',
         'description', 'note_client_commande', 'avis_client_commande', 'code_authenticite',
-        'date_commande',
+        'id_livreur_souhaite', 'date_commande',
     ];
 
     protected function casts(): array
@@ -45,6 +45,13 @@ class Commande extends Model
     public function paiement() { return $this->hasOne(Paiement::class, 'id_commande'); }
     public function livraison() { return $this->hasOne(Livraison::class, 'id_commande'); }
     public function versements() { return $this->hasMany(Versement::class, 'id_commande'); }
+    public function livreurSouhaite() { return $this->belongsTo(Livreur::class, 'id_livreur_souhaite', 'id_utilisateur'); }
+
+    /** Vrai si l'acheteur a choisi un retrait direct, sans intervention d'un livreur. */
+    public function estRetraitDirect(): bool
+    {
+        return $this->id_livreur_souhaite === null;
+    }
 
     /** Génère un code d'authenticité unique destiné au QR code de vérification à la livraison. */
     public static function genererCodeAuthenticite(): string

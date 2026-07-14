@@ -14,8 +14,12 @@ use Illuminate\View\View;
  * Traitement des commandes reçues par un fournisseur (Éleveur / Vendeur de
  * provende / Vendeur d'accessoires) sur ses propres annonces.
  * Cycle couvert ici : payee -> en_cours_de_traitement -> validee (ou annulee).
- * La validation ouvre automatiquement une entrée LIVRAISON, prise en charge
- * ensuite par un livreur (module Livraison, Phase 4).
+ * La validation ouvre une entrée LIVRAISON assignée au livreur choisi par
+ * l'acheteur à la commande (COMMANDES.id_livreur_souhaite), qui devra
+ * l'accepter ou la refuser (module Livraison, Phase 4). En cas de retrait
+ * direct (aucun livreur souhaité), aucune LIVRAISON n'est créée : la
+ * commande reste `validee` et peut être confirmée directement par
+ * l'acheteur (voir CommandeController::confirmerReception()).
  */
 class CommandeFournisseurController extends Controller
 {
@@ -52,8 +56,20 @@ class CommandeFournisseurController extends Controller
             $commande->update(['statut' => Commande::VALIDEE]);
             $commande->load('annonce.auteur', 'acheteur');
 
+            if ($commande->estRetraitDirect()) {
+                NotificationElevConnect::create([
+                    'id_utilisateur' => $commande->id_acheteur,
+                    'contenu' => "Votre commande #{$commande->id_commande} a été validée par le fournisseur. Vous pouvez la retirer directement, puis confirmer la réception avec votre code.",
+                    'type' => 'commande',
+                    'date_creation' => now(),
+                ]);
+
+                return;
+            }
+
             Livraison::create([
                 'id_commande' => $commande->id_commande,
+                'id_livreur' => $commande->id_livreur_souhaite,
                 'adresse_fournisseur' => $commande->annonce->auteur->adresse ?? 'Non renseignée',
                 'adresse_client' => $commande->acheteur->adresse ?? 'Non renseignée',
                 'statut' => Livraison::STATUT_EN_ATTENTE,
@@ -62,13 +78,24 @@ class CommandeFournisseurController extends Controller
 
             NotificationElevConnect::create([
                 'id_utilisateur' => $commande->id_acheteur,
-                'contenu' => "Votre commande #{$commande->id_commande} a été validée par le fournisseur et est proposée aux livreurs disponibles.",
+                'contenu' => "Votre commande #{$commande->id_commande} a été validée par le fournisseur et proposée au livreur choisi.",
                 'type' => 'commande',
+                'date_creation' => now(),
+            ]);
+
+            NotificationElevConnect::create([
+                'id_utilisateur' => $commande->id_livreur_souhaite,
+                'contenu' => "Une nouvelle livraison vous est proposée pour la commande #{$commande->id_commande}.",
+                'type' => 'livraison',
                 'date_creation' => now(),
             ]);
         });
 
-        return back()->with('status', 'Commande validée — elle est désormais proposée aux livreurs disponibles.');
+        $message = $commande->fresh()->estRetraitDirect()
+            ? 'Commande validée — retrait direct, sans livreur.'
+            : 'Commande validée — proposée au livreur choisi par l\'acheteur.';
+
+        return back()->with('status', $message);
     }
 
     public function refuser(Request $request, Commande $commande): RedirectResponse

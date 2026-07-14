@@ -14,7 +14,7 @@
         <h1>Mes livraisons</h1>
         <p>Suivi de vos livraisons acceptées, de la prise en charge à la remise.</p>
       </div>
-      <a href="{{ route('livraison.disponibles') }}" class="btn btn-ghost-dark">Voir les livraisons disponibles</a>
+      <a href="{{ route('livraison.proposees') }}" class="btn btn-ghost-dark">Voir les livraisons proposées</a>
     </div>
 
     @if (session('status'))

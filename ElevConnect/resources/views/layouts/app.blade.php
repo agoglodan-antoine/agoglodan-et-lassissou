@@ -28,6 +28,7 @@
     <nav class="nav-links">
       <a href="{{ route('catalogue.index') }}">Annonces</a>
       <a href="{{ route('veterinaires.index') }}">Vétérinaires</a>
+      <a href="{{ route('home') }}#abonnements">Abonnements</a>
       <a href="{{ route('actualites.index') }}">Actualités</a>
     </nav>
     <div class="nav-actions">
@@ -85,6 +86,34 @@
       </div>
 
       <div class="mp-divider"></div>
+
+      <div class="mp-group">
+        <div class="mp-group-title">Mon espace</div>
+        <a href="{{ route('register') }}?role=eleveur" class="mp-link">
+          <span class="mp-icon"><svg viewBox="0 0 24 24"><path d="M4 15c-1.5-1-2-3 0-4 .3-2 2-3 4-2.6C9 6.7 11 6 12 7c1-1 3-.3 4 1.4 2-.4 3.7.6 4 2.6 2 1 1.5 3 0 4-.3 2.6-2.5 4-5 4H9c-2.5 0-4.7-1.4-5-4z"/></svg></span>
+          Espace Éleveur
+        </a>
+        <a href="{{ route('register') }}?role=vendeur_provende" class="mp-link">
+          <span class="mp-icon"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/></svg></span>
+          Espace Vendeur de provende
+        </a>
+        <a href="{{ route('register') }}?role=vendeur_accessoire" class="mp-link">
+          <span class="mp-icon"><svg viewBox="0 0 24 24"><path d="M4 4h16v16H4z"/></svg></span>
+          Espace Vendeur d'accessoires
+        </a>
+        <a href="{{ route('register') }}?role=acheteur" class="mp-link">
+          <span class="mp-icon"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg></span>
+          Espace Acheteur
+        </a>
+        <a href="{{ route('register') }}?role=veterinaire" class="mp-link">
+          <span class="mp-icon"><svg viewBox="0 0 24 24"><path d="M4 16c0-5 3-9 8-9s8 4 8 9"/><circle cx="12" cy="18" r="2"/></svg></span>
+          Espace Vétérinaire
+        </a>
+        <a href="{{ route('register') }}?role=livreur" class="mp-link">
+          <span class="mp-icon"><svg viewBox="0 0 24 24"><rect x="3" y="9" width="12" height="8" rx="1.5"/><path d="M15 12h3l3 3v2h-6z"/></svg></span>
+          Espace Livreur
+        </a>
+      </div>
 
       <div class="mp-actions">
         @auth

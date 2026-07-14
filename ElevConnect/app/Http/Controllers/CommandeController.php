@@ -4,16 +4,23 @@ namespace App\Http\Controllers;
 
 use App\Models\Annonce;
 use App\Models\Commande;
+use App\Models\Livreur;
 use App\Models\Versement;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 /**
  * Commandes passées par l'Acheteur sur une annonce du catalogue.
  * Le paiement (séquestre) est traité séparément par PaiementController —
  * une commande créée ici reste `en_attente` tant qu'elle n'est pas payée.
+ *
+ * Choix du mode de réception (cahier des charges, tableau 2.4/2.5) : à la
+ * commande, l'acheteur choisit soit un livreur précis (proposé selon la
+ * proximité avec le fournisseur), soit un retrait direct sans livreur —
+ * l'intervention d'un livreur reste optionnelle.
  */
 class CommandeController extends Controller
 {
@@ -25,9 +32,21 @@ class CommandeController extends Controller
         abort_if($annonce->id_utilisateur === $request->user()->id_utilisateur, 403,
             "Vous ne pouvez pas commander votre propre annonce.");
 
-        $annonce->load('reductions');
+        $annonce->load('reductions', 'auteur');
 
-        return view('commandes.create', compact('annonce'));
+        $livreurs = collect();
+        if ($annonce->auteur->latitude && $annonce->auteur->longitude) {
+            $livreurs = Livreur::candidatsProches($annonce->auteur->latitude, $annonce->auteur->longitude);
+        }
+
+        $reductions = $annonce->reductions->map(fn($r) => [
+    'min' => (int) $r->quantite_min,
+    'max' => (int) $r->quantite_max,
+    'pct' => (float) $r->pourcentage_reduction,
+])->values();
+
+return view('commandes.create', compact('annonce', 'livreurs', 'reductions'));
+        //return view('commandes.create', compact('annonce', 'livreurs'));
     }
 
     public function store(Request $request, Annonce $annonce): RedirectResponse
@@ -40,6 +59,8 @@ class CommandeController extends Controller
 
         $data = $request->validate([
             'quantite' => ['required', 'integer', 'min:1', 'max:'.$annonce->quantite],
+            'mode_reception' => ['required', Rule::in(['retrait_direct', 'livreur'])],
+            'id_livreur' => ['required_if:mode_reception,livreur', 'nullable', 'exists:livreurs,id_utilisateur'],
         ]);
 
         $annonce->load('reductions');
@@ -55,6 +76,7 @@ class CommandeController extends Controller
             'montant_net_commande' => $montant['montant_net_commande'],
             'statut' => Commande::EN_ATTENTE,
             'code_authenticite' => Commande::genererCodeAuthenticite(),
+            'id_livreur_souhaite' => $data['mode_reception'] === 'livreur' ? $data['id_livreur'] : null,
             'date_commande' => now(),
         ]);
 
@@ -91,22 +113,35 @@ class CommandeController extends Controller
     }
 
     /**
-     * Confirmation de réception par l'acheteur : le code saisi (issu du scan
-     * du QR code affiché sur cette même page) doit correspondre exactement
-     * au `code_authenticite` généré à la création de la commande. Le succès
-     * déclenche les versements au fournisseur et, le cas échéant, au livreur.
+     * Confirmation de réception par l'acheteur.
+     * - Avec livreur : le code saisi (issu du scan du QR code) doit
+     *   correspondre exactement au `code_authenticite` de la commande.
+     * - Retrait direct : aucune vérification par QR code, celle-ci n'ayant
+     *   de sens qu'en présence d'un livreur intermédiaire — l'acheteur
+     *   confirme simplement la réception en main propre auprès du fournisseur.
+     * Dans les deux cas, le succès déclenche les versements au fournisseur
+     * et, le cas échéant, au livreur.
      */
     public function confirmerReception(Request $request, Commande $commande): RedirectResponse
     {
         $this->authorize('view', $commande);
 
-        abort_unless($commande->statut === Commande::LIVREE, 422,
-            "Cette commande n'est pas encore au statut « livrée ».");
+        $statutsAutorises = $commande->estRetraitDirect()
+            ? [Commande::VALIDEE, Commande::LIVREE]
+            : [Commande::LIVREE];
 
-        $data = $request->validate(['code' => ['required', 'string']]);
+        abort_unless(in_array($commande->statut, $statutsAutorises, true), 422,
+            $commande->estRetraitDirect()
+                ? "Cette commande n'est pas encore validée par le fournisseur."
+                : "Cette commande n'est pas encore au statut « livrée »."
+        );
 
-        if (! hash_equals($commande->code_authenticite, trim($data['code']))) {
-            return back()->withErrors(['code' => "Code invalide. Vérifiez le QR code présenté par le livreur."]);
+        if (! $commande->estRetraitDirect()) {
+            $data = $request->validate(['code' => ['required', 'string']]);
+
+            if (! hash_equals($commande->code_authenticite, trim($data['code']))) {
+                return back()->withErrors(['code' => "Code invalide. Vérifiez le QR code présenté par le livreur."]);
+            }
         }
 
         DB::transaction(function () use ($commande) {
@@ -160,12 +195,16 @@ class CommandeController extends Controller
         return back()->with('status', 'Réception confirmée. Le fournisseur (et le livreur) ont été payés.');
     }
 
-    /** L'acheteur signale un problème après livraison — ouvre un litige traité en Phase 6. */
+    /** L'acheteur signale un problème après réception — ouvre un litige traité en Phase 6. */
     public function signalerProbleme(Request $request, Commande $commande): RedirectResponse
     {
         $this->authorize('view', $commande);
 
-        abort_unless($commande->statut === Commande::LIVREE, 422);
+        $statutsAutorises = $commande->estRetraitDirect()
+            ? [Commande::VALIDEE, Commande::LIVREE]
+            : [Commande::LIVREE];
+
+        abort_unless(in_array($commande->statut, $statutsAutorises, true), 422);
 
         $data = $request->validate(['description' => ['required', 'string', 'max:1000']]);
 

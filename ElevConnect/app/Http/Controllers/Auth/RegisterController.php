@@ -58,7 +58,7 @@ class RegisterController extends Controller
             'nom' => ['required', 'string', 'max:100'],
             'prenom' => ['required', 'string', 'max:100'],
             'email' => ['required', 'email', 'max:150', 'unique:utilisateurs,email'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'password' => \App\Http\Controllers\Auth\ResetPasswordController::REGLE_MOT_DE_PASSE,
             'telephone' => ['nullable', 'string', 'max:20'],
             'adresse' => ['nullable', 'string', 'max:255'],
             'latitude' => ['required', 'numeric', 'between:-90,90'],

@@ -56,12 +56,16 @@
             </div>
           @endif
         </div>
+      @elseif ($commande->estRetraitDirect() && in_array($commande->statut, ['payee', 'en_cours_de_traitement', 'validee']))
+        <div class="dash-card" style="background:var(--sand);box-shadow:none;margin-bottom:20px;">
+          <b>Mode de retrait :</b> retrait direct auprès du fournisseur (sans livreur).
+        </div>
       @endif
 
-      @if (in_array($commande->statut, ['payee', 'en_cours_de_traitement', 'validee', 'en_cours_de_livraison']))
+      @if (! $commande->estRetraitDirect() && in_array($commande->statut, ['payee', 'en_cours_de_traitement', 'validee', 'en_cours_de_livraison']))
         <div class="dash-card" style="background:var(--sand);box-shadow:none;text-align:center;padding:28px;">
           <h3 style="font-size:1.05rem;margin-bottom:14px;">Votre code de vérification</h3>
-          {!! \F9WebLtd\QrCode\Facades\QrCode::format('svg')->size(200)->generate($commande->code_authenticite) !!}
+          {!! \SimpleSoftwareIO\QrCode\Facades\QrCode::format('svg')->size(200)->generate($commande->code_authenticite) !!}
           <p class="form-hint" style="margin-top:14px;">
             Conservez ce code : une fois la commande livrée, vous confirmerez vous-même
             la réception ici (ou en le scannant), ce qui déclenchera le versement
@@ -70,7 +74,29 @@
         </div>
       @endif
 
-      @if ($commande->statut === 'livree')
+      @if ($commande->estRetraitDirect() && $commande->statut === 'validee')
+        <div class="dash-card" style="background:var(--sand);box-shadow:none;">
+          <h3 style="font-size:1.05rem;margin-bottom:10px;">Confirmer la réception</h3>
+          <p class="form-hint" style="margin-bottom:14px;">
+            Votre commande a été validée par le fournisseur. Une fois le produit récupéré
+            en main propre, confirmez la réception ci-dessous — aucun code n'est requis
+            pour un retrait direct.
+          </p>
+          <form method="POST" action="{{ route('commandes.confirmer-reception', $commande) }}">
+            @csrf
+            <button type="submit" class="btn btn-primary btn-sm">J'ai récupéré ma commande</button>
+          </form>
+
+          <button type="button" class="btn btn-ghost-dark btn-sm" id="toggleDispute" style="margin-top:14px;">Signaler un problème</button>
+          <form method="POST" action="{{ route('commandes.signaler-probleme', $commande) }}" id="disputeForm" style="display:none;margin-top:12px;">
+            @csrf
+            <textarea name="description" rows="3" placeholder="Décrivez le problème rencontré" required style="width:100%;padding:0.7em 1em;border-radius:var(--radius-sm);border:1.5px solid var(--line);margin-bottom:10px;"></textarea>
+            <button type="submit" class="btn btn-danger btn-sm">Signaler à ElevConnect</button>
+          </form>
+        </div>
+      @endif
+
+      @if (! $commande->estRetraitDirect() && $commande->statut === 'livree')
         <div class="dash-card" style="background:var(--sand);box-shadow:none;">
           <h3 style="font-size:1.05rem;margin-bottom:10px;">Confirmer la réception</h3>
           <p class="form-hint" style="margin-bottom:14px;">

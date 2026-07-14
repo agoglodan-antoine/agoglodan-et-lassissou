@@ -1,39 +1,41 @@
-<x-guest-layout>
-    <form method="POST" action="{{ route('password.store') }}">
+@extends('layouts.app')
+
+@section('title', 'Réinitialiser le mot de passe — ElevConnect')
+
+@push('styles')
+  <link rel="stylesheet" href="{{ asset('css/auth.css') }}">
+@endpush
+
+@section('content')
+<section class="auth-section">
+  <div class="container">
+    <div class="auth-card">
+      <h1>Nouveau mot de passe</h1>
+      <p class="sub">Choisissez un nouveau mot de passe pour votre compte ElevConnect.</p>
+
+      @if ($errors->any())
+        <div class="form-error" style="margin-bottom:16px;">{{ $errors->first() }}</div>
+      @endif
+
+      <form method="POST" action="{{ route('password.update') }}">
         @csrf
-
-        <!-- Password Reset Token -->
-        <input type="hidden" name="token" value="{{ $request->route('token') }}">
-
-        <!-- Email Address -->
-        <div>
-            <x-input-label for="email" :value="__('Email')" />
-            <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email', $request->email)" required autofocus autocomplete="username" />
-            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+        <input type="hidden" name="token" value="{{ $token }}">
+        <div class="form-field">
+          <label for="email">Adresse email</label>
+          <input type="email" id="email" name="email" value="{{ old('email', $email) }}" required autofocus>
         </div>
-
-        <!-- Password -->
-        <div class="mt-4">
-            <x-input-label for="password" :value="__('Password')" />
-            <x-text-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="new-password" />
-            <x-input-error :messages="$errors->get('password')" class="mt-2" />
+        <div class="form-field">
+          <label for="password">Nouveau mot de passe</label>
+          <input type="password" id="password" name="password" required minlength="8">
+          <span class="form-hint">Au moins 8 caractères, avec une lettre et un chiffre.</span>
         </div>
-
-        <!-- Confirm Password -->
-        <div class="mt-4">
-            <x-input-label for="password_confirmation" :value="__('Confirm Password')" />
-
-            <x-text-input id="password_confirmation" class="block mt-1 w-full"
-                                type="password"
-                                name="password_confirmation" required autocomplete="new-password" />
-
-            <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
+        <div class="form-field">
+          <label for="password_confirmation">Confirmation</label>
+          <input type="password" id="password_confirmation" name="password_confirmation" required minlength="8">
         </div>
-
-        <div class="flex items-center justify-end mt-4">
-            <x-primary-button>
-                {{ __('Reset Password') }}
-            </x-primary-button>
-        </div>
-    </form>
-</x-guest-layout>
+        <button type="submit" class="btn btn-primary auth-submit">Réinitialiser le mot de passe</button>
+      </form>
+    </div>
+  </div>
+</section>
+@endsection

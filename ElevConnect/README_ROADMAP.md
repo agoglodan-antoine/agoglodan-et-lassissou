@@ -313,9 +313,83 @@ notifications).
    `VeterinaireController` ont été mis à jour en conséquence (`u.latitude` /
    `u.longitude` au lieu de `el.latitude`, `v.latitude`, etc.).
 
+8. **`latitude`/`longitude` rendues nullables en base** : un seeder ou tout
+   autre code créant un `UTILISATEUR` sans passer par le formulaire public
+   d'inscription (ex. `UtilisateurSeeder`) n'a pas forcément de position GPS
+   à fournir. Les deux colonnes sont donc `nullable()` sur la table
+   `utilisateurs` — le formulaire d'inscription public
+   (`RegisterController`) continue, lui, à les exiger via la validation.
+   Si votre seeder veut des positions réalistes pour tester la recherche par
+   proximité, ajoutez simplement `'latitude' => ..., 'longitude' => ...` aux
+   tableaux passés à `Utilisateur::create()`.
+9. **Flux d'assignation du livreur, entièrement revu** (correction la plus
+   structurante — voir `CONFORMITE_MEMOIRE.md`, §3.1 et 3.2) :
+   - À la commande, l'acheteur choisit désormais explicitement son **mode de
+     retrait** : *retrait direct* (aucun livreur) ou *livraison*, avec choix
+     d'un **livreur précis** parmi une liste triée par proximité avec le
+     fournisseur (`Livreur::candidatsProches()`). Ce choix est stocké sur
+     `COMMANDES.id_livreur_souhaite` (nouvelle colonne).
+   - Il n'existe plus de file ouverte de « livraisons disponibles » : une
+     `LIVRAISON` est créée à la validation de la commande, **assignée
+     directement** au livreur choisi (`Livraison::proposees()`,
+     anciennement `disponibles()`).
+   - Le livreur assigné peut désormais **accepter ou refuser**
+     (`LivraisonController::rejeter()`, nouvelle action) une livraison qui
+     lui est spécifiquement proposée.
+   - **En cas de refus**, la livraison est automatiquement **reproposée au
+     livreur disponible le plus proche** du point d'enlèvement
+     (`Livraison::trouverProchainCandidat()`), en excluant les livreurs
+     ayant déjà refusé (historique conservé dans la nouvelle colonne JSON
+     `LIVRAISON.livreurs_ayant_refuse`). Si plus aucun candidat n'est
+     trouvé, l'acheteur est notifié pour choisir un autre livreur ou passer
+     au retrait direct.
+   - **Le retrait direct est maintenant un vrai chemin fonctionnel** :
+     aucune `LIVRAISON` n'est créée, la commande passe directement de
+     `validee` à `confirmee` dès que l'acheteur clique sur « J'ai récupéré
+     ma commande » — **sans vérification par code QR**, conformément au
+     texte du mémoire (*"sans vérification par QR code, celle-ci n'ayant de
+     sens qu'en présence d'un livreur intermédiaire"*). Le code QR reste
+     affiché et vérifié normalement dès qu'un livreur intervient.
+10. **Réinitialisation de mot de passe** (`CONFORMITE_MEMOIRE.md`, §3.6) :
+    - Deux migrations manquaient au squelette livré jusqu'ici et ont été
+      ajoutées : `password_reset_tokens` (nécessaire au broker de mots de
+      passe de Laravel) et `sessions` (nécessaire car `.env.example` utilise
+      `SESSION_DRIVER=database`).
+    - `ForgotPasswordController` (`/mot-de-passe-oublie`) envoie un lien par
+      email via `Illuminate\Support\Facades\Password` — le message de retour
+      est volontairement identique que l'adresse existe ou non, pour ne pas
+      révéler l'existence d'un compte.
+    - `ResetPasswordController` (`/reinitialiser-mot-de-passe/{token}`)
+      consomme le jeton et met à jour le mot de passe (haché).
+    - **Politique de mot de passe appliquée** (`CONFORMITE_MEMOIRE.md`,
+      §3.9) : au moins 8 caractères, une lettre et un chiffre — règle
+      centralisée dans `ResetPasswordController::REGLE_MOT_DE_PASSE` et
+      réutilisée par `RegisterController`.
+    - **Configuration requise, à faire vous-même** (fichiers non livrés
+      dans ce dépôt) :
+      - `config/auth.php` : le provider `users` doit pointer vers
+        `App\Models\Utilisateur::class` et non `App\Models\User::class` —
+        sans ce réglage, `Auth::attempt()`, la connexion et la
+        réinitialisation de mot de passe échouent silencieusement.
+        ```php
+        'providers' => [
+            'users' => [
+                'driver' => 'eloquent',
+                'model' => App\Models\Utilisateur::class,
+            ],
+        ],
+        ```
+      - Si `app/Models/User.php` existe encore (fichier par défaut de
+        Laravel), vous pouvez le supprimer — il n'est plus utilisé.
+      - Un mailer doit être configuré pour recevoir réellement le lien
+        (`.env.example` pointe vers un attrape-mails local type Mailpit sur
+        `127.0.0.1:2525` ; à défaut, `MAIL_MAILER=log` écrit le contenu de
+        l'email dans `storage/logs/laravel.log`, pratique en développement).
+
 **Si vous aviez déjà lancé `php artisan migrate`, relancez avec
 `php artisan migrate:fresh`** pour repartir d'un schéma propre à chaque
-correction de migration listée ci-dessus.
+correction de migration listée ci-dessus (les points 6, 7, 9 et 10 ajoutent
+ou modifient des tables).
 
 ## 11. Installation (WampServer / PHP 8.3 / MySQL)
 

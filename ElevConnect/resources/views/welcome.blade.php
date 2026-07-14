@@ -1,163 +1,18 @@
 @extends('layouts.app')
 
-{{-- Injection des styles correctifs pour uniformiser les cartes et positionner les flèches --}}
-@push('styles')
-<style>
-  /* Conteneur global de la liste pour positionner les flèches à l'extérieur */
-  .listings-container-wrapper {
-    position: relative;
-    padding: 0 60px; /* Augmenté légèrement pour éviter que les flèches mordent sur les cartes */
-  }
-
-  /* Repositionnement des boutons de navigation de part et d'autre */
-  .listings-container-wrapper #scrollLeft,
-  .listings-container-wrapper #scrollRight {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 10;
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    border-radius: 50%;
-    width: 44px;
-    height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-
-  .listings-container-wrapper #scrollLeft:hover,
-  .listings-container-wrapper #scrollRight:hover {
-    background: var(--sand, #F3EBD8);
-    transform: translateY(-50%) scale(1.05);
-  }
-
-  .listings-container-wrapper #scrollLeft {
-    left: 0;
-  }
-
-  .listings-container-wrapper #scrollRight {
-    right: 0;
-  }
-
-  /* Uniformisation et répartition parfaite des éléments */
-  #listingsTrack {
-    display: flex;
-    gap: 24px; /* Espace fixe entre les cartes */
-    overflow-x: auto;
-    scroll-behavior: smooth;
-    padding: 12px 4px;
-    width: 100%;
-  }
-
-  #listingsTrack a {
-    /* Formule pour afficher exactement 3 éléments en prenant en compte les gaps de 24px */
-    flex: 0 0 calc((100% - (2 * 24px)) / 3);
-    display: flex;
-  }
-
-  .listing-card {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    height: 320px; /* Augmenté légèrement pour que le texte long ou les noms d'auteurs ne coupent pas */
-    background: #ffffff;
-    border-radius: var(--radius-md, 12px);
-    overflow: hidden;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-  }
-
-  .listing-media {
-    height: 150px;
-    width: 100%;
-    position: relative;
-    flex-shrink: 0;
-    background: #f7fafc;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .listing-media img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  .listing-body {
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-    flex-grow: 1;
-  }
-
-  .listing-body h4 {
-    margin: 0 0 8px 0;
-    font-size: 1.1rem;
-    line-height: 1.4;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-
-  .listing-meta {
-    font-size: 0.9rem;
-    color: #718096;
-    margin-bottom: 12px;
-  }
-
-  .listing-price {
-    margin-top: auto;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-top: 1px solid #edf2f7;
-    padding-top: 12px;
-  }
-
-  /* Masquer les barres de défilement */
-  #listingsTrack::-webkit-scrollbar {
-    display: none;
-  }
-  #listingsTrack {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-
-  /* Adaptations responsives pour tablettes et mobiles */
-  @media (max-width: 1024px) {
-    #listingsTrack a {
-      /* Affiche 2 éléments complets sur les écrans moyens */
-      flex: 0 0 calc((100% - (1 * 24px)) / 2);
-    }
-  }
-
-  @media (max-width: 768px) {
-    .listings-container-wrapper {
-      padding: 0;
-    }
-    .listings-container-wrapper #scrollLeft,
-    .listings-container-wrapper #scrollRight {
-      display: none;
-    }
-    #listingsTrack a {
-      /* Sur mobile, un seul élément prend presque toute la largeur pour inviter au swipe */
-      flex: 0 0 85%;
-    }
-    .listing-card {
-      height: 400px;
-    }
-  }
-</style>
-@endpush
-
 @section('content')
 
-{{-- HERO --}}
+{{--
+  ============================================================================
+  HERO — repris de Maquette_accueil.html (structure, styles, animations
+  radar/compteurs à l'identique). Le texte a été corrigé pour rester fidèle
+  au cahier des charges du mémoire (voir README_ROADMAP.md) : la plateforme
+  prélève une commission transparente de 5 % sur les ventes ET les
+  livraisons effectivement réalisées — il n'y a pas de "commission 0 %".
+  Le champ de recherche du hero a été retiré au profit d'une recherche
+  générale accessible depuis la barre de navigation (voir SearchController).
+  ============================================================================
+--}}
 <section class="hero" id="top">
   <div class="container hero-grid">
     <div class="hero-copy">
@@ -177,7 +32,7 @@
 
       <div class="hero-stats">
         <div class="hero-stat"><b id="statEleveurs" data-target="{{ $stats['eleveurs'] }}" data-suffix="+">0</b><span>Éleveurs inscrits</span></div>
-        <div class="hero-stat"><b id="statCommunes" data-target="{{ $stats['communes'] }}">0</b><span>Communes </span></div>
+        <div class="hero-stat"><b id="statCommunes" data-target="{{ $stats['communes'] }}">0</b><span>Communes couvertes</span></div>
         <div class="hero-stat"><b id="statAnnonces" data-target="{{ $stats['annonces'] }}" data-suffix="+">0</b><span>Annonces publiées</span></div>
       </div>
     </div>
@@ -214,7 +69,7 @@
   </div>
 </section>
 
-{{-- TRUST STRIP --}}
+{{-- TRUST STRIP — corrigé : la commission de 5% est réelle, il n'y a pas de messagerie interne. --}}
 <div class="trust-strip">
   <div class="trust-track">
     <span>Paiement sécurisé en séquestre</span>
@@ -265,7 +120,8 @@
   </div>
 </section>
 
-{{-- HOW IT WORKS --}}
+{{-- HOW IT WORKS — corrigé : pas de "messagerie intégrée" (aucune messagerie interne selon le
+     cahier des charges), pas de "sans commission" (commission de 5% sur les ventes réalisées). --}}
 <section class="section steps-section">
   <div class="container">
     <div class="section-head">
@@ -298,62 +154,60 @@
   </div>
 </section>
 
-{{-- ANNONCES RECENTES MODIFIÉES --}}
+{{-- LISTINGS — dynamiques (annonces réellement "visible" en base), badges corrigés :
+     plus de mention "Éleveur Premium/Basique" (l'abonnement est réservé aux vétérinaires). --}}
 <section class="section" id="annonces">
   <div class="container">
     <div class="listings-head">
-      <div class="section-head" style="margin-bottom:24px;">
+      <div class="section-head" style="margin-bottom:0;">
         <span class="eyebrow">À la une</span>
         <h2>Annonces récentes</h2>
         <a href="{{ route('catalogue.index') }}" style="font-weight:700;color:var(--clay-dark);">Voir toutes les annonces →</a>
       </div>
-    </div>
-
-    {{-- Nouveau conteneur enveloppe pour positionner les flèches à gauche et à droite --}}
-    <div class="listings-container-wrapper">
       <div class="carousel-controls">
         <button id="scrollLeft" aria-label="Précédent"><svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6" fill="none" stroke="#1E3626" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         <button id="scrollRight" aria-label="Suivant"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" fill="none" stroke="#1E3626" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       </div>
+    </div>
 
-      <div class="listings-track" id="listingsTrack">
-        @forelse ($annonces as $annonce)
-          <a href="{{ route('catalogue.show', $annonce) }}" style="text-decoration:none;color:inherit;">
-          <article class="listing-card">
-            <div class="listing-media">
-              <span class="listing-badge {{ $annonce->type_annonce === 'animal' ? 'made' : '' }}">
-                {{ ucfirst($annonce->type_annonce) }}
-              </span>
-              @if ($annonce->image_1)
-                <img src="{{ asset('storage/'.$annonce->image_1) }}" alt="{{ $annonce->titre }}">
-              @else
-                <svg viewBox="0 0 24 24" style="width:50px; height:50px; fill: #cbd5e0;"><path d="M4 15c-1.5-1-2-3 0-4 .3-2 2-3 4-2.6C9 6.7 11 6 12 7c1-1 3-.3 4 1.4 2-.4 3.7.6 4 2.6 2 1 1.5 3 0 4-.3 2.6-2.5 4-5 4H9c-2.5 0-4.7-1.4-5-4z"/></svg>
-              @endif
+    <div class="listings-track" id="listingsTrack">
+      @forelse ($annonces as $annonce)
+        <a href="{{ route('catalogue.show', $annonce) }}" style="text-decoration:none;color:inherit;">
+        <article class="listing-card">
+          <div class="listing-media">
+            <span class="listing-badge {{ $annonce->type_annonce === 'animal' ? 'made' : '' }}">
+              {{ ucfirst($annonce->type_annonce) }}
+            </span>
+            @if ($annonce->image_1)
+              <img src="{{ asset('storage/'.$annonce->image_1) }}" alt="{{ $annonce->titre }}" style="width:100%;height:100%;object-fit:cover;">
+            @else
+              <svg viewBox="0 0 24 24"><path d="M4 15c-1.5-1-2-3 0-4 .3-2 2-3 4-2.6C9 6.7 11 6 12 7c1-1 3-.3 4 1.4 2-.4 3.7.6 4 2.6 2 1 1.5 3 0 4-.3 2.6-2.5 4-5 4H9c-2.5 0-4.7-1.4-5-4z"/></svg>
+            @endif
+          </div>
+          <div class="listing-body">
+            <h4>{{ $annonce->titre }}</h4>
+            <div class="listing-meta">{{ $annonce->auteur->adresse ?? 'Localisation non renseignée' }}</div>
+            <div class="listing-price">
+              <b>{{ number_format($annonce->prix_unitaire, 0, ',', ' ') }} FCFA</b>
+              <span>{{ $annonce->auteur->nom ?? '' }} {{ $annonce->auteur->prenom ?? '' }}</span>
             </div>
-            <div class="listing-body">
-              <h4>{{ $annonce->titre }}</h4>
-              <div class="listing-meta">{{ $annonce->auteur->adresse ?? 'Localisation non renseignée' }}</div>
-              <div class="listing-price">
-                <b>{{ number_format($annonce->prix_unitaire, 0, ',', ' ') }} FCFA</b>
-                <span>{{ $annonce->auteur->nom ?? '' }} {{ $annonce->auteur->prenom ?? '' }}</span>
-              </div>
-            </div>
-          </article>
-          </a>
-        @empty
-          <article class="listing-card" style="justify-content: center; align-items: center; text-align: center; width: 100%;">
-            <div class="listing-body">
-              <h4>Aucune annonce publiée pour le moment</h4>
-              <p class="listing-meta">Les annonces apparaîtront ici dès qu'un administrateur les aura approuvées.</p>
-            </div>
-          </article>
-        @endforelse
-      </div>
+          </div>
+        </article>
+        </a>
+      @empty
+        <article class="listing-card">
+          <div class="listing-body">
+            <h4>Aucune annonce publiée pour le moment</h4>
+            <p class="listing-meta">Les annonces apparaîtront ici dès qu'un administrateur les aura approuvées.</p>
+          </div>
+        </article>
+      @endforelse
     </div>
   </div>
 </section>
 
-{{-- ROLES --}}
+{{-- ROLES — les sept acteurs identifiés au chapitre 3 du mémoire. L'Administrateur
+     n'a pas d'onglet public (compte non ouvert à l'auto-inscription, voir RegisterController). --}}
 <section class="section" style="background:var(--sand);" id="acteurs">
   <div class="container">
     <div class="section-head">
@@ -466,7 +320,9 @@
   </div>
 </section>
 
-{{-- PRICING --}}
+{{-- PRICING — corrigé : l'abonnement est réservé aux VÉTÉRINAIRES uniquement
+     (cahier des charges, chap. 2), pas aux éleveurs. Formule Basique gratuite,
+     Premium à 2 000 FCFA/mois (et non 5 000 FCFA comme dans la maquette d'origine). --}}
 <section class="section" id="abonnements">
   <div class="container">
     <div class="section-head">
@@ -503,7 +359,8 @@
   </div>
 </section>
 
-{{-- TRACEABILITY --}}
+{{-- TRACEABILITY — corrigé : suppression de la mention "messagerie", accent mis sur le
+     séquestre + QR code, conformément à la règle "pas de messagerie interne". --}}
 <section class="section trace-section">
   <div class="container trace-grid">
     <div class="trace-visual">
@@ -533,7 +390,7 @@
   </div>
 </section>
 
-{{-- TESTIMONIALS --}}
+{{-- TESTIMONIALS — corrigé : suppression de la mention "sans commission". --}}
 <section class="section">
   <div class="container">
     <div class="section-head">
@@ -569,7 +426,8 @@
   </div>
 </section>
 
-{{-- ACTUALITÉS --}}
+{{-- ACTUALITÉS — dynamiques (ACTUALITES en base), publiables par tout rôle
+     sauf Acheteur (Utilisateur::peutPublierActualite()). --}}
 <section class="section" style="background:var(--sand);" id="actualites">
   <div class="container">
     <div class="section-head">

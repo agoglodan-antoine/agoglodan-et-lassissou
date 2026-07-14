@@ -4,7 +4,14 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-/** Livraison associée à une commande — intervention du livreur optionnelle. */
+/**
+ * Livraison associée à une commande — intervention du livreur optionnelle.
+ * L'acheteur choisit un livreur précis à la commande (COMMANDES.id_livreur_souhaite) ;
+ * ce livreur est celui initialement assigné ici (id_livreur). En cas de refus,
+ * la livraison est reproposée automatiquement à un autre livreur disponible et
+ * l'historique des refus est conservé dans livreurs_ayant_refuse, pour ne pas
+ * reproposer deux fois au même livreur.
+ */
 return new class extends Migration
 {
     public function up(): void
@@ -26,6 +33,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->unsignedTinyInteger('note_client_livraison')->nullable();
             $table->text('avis_client_livraison')->nullable();
+            $table->json('livreurs_ayant_refuse')->nullable();
             $table->timestamps();
 
             $table->foreign('id_commande')->references('id_commande')->on('commandes')

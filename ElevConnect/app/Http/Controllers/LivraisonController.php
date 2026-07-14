@@ -12,21 +12,29 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 /**
- * Espace Livreur : livraisons disponibles (non affectées) et suivi de ses
- * propres livraisons, jusqu'à la remise au client (la confirmation finale
- * par code QR est faite côté Acheteur — voir CommandeController::confirmerReception()).
+ * Espace Livreur : livraisons qui lui sont proposées (assignées par
+ * l'acheteur à la commande) et suivi de ses propres livraisons, jusqu'à la
+ * remise au client (la confirmation finale par code QR est faite côté
+ * Acheteur — voir CommandeController::confirmerReception()).
+ *
+ * Une livraison n'est jamais un pool ouvert : elle est assignée à un
+ * livreur précis (id_livreur) dès sa création. En cas de refus, elle est
+ * automatiquement reproposée au livreur disponible le plus proche du point
+ * d'enlèvement (voir Livraison::trouverProchainCandidat()).
  */
 class LivraisonController extends Controller
 {
-    public function disponibles(Request $request): View
+    public function proposees(Request $request): View
     {
+        abort_unless($request->user()->livreur, 403, "Réservé aux livreurs.");
+
         $livraisons = Livraison::with('commande.annonce.auteur', 'commande.acheteur')
-            ->whereNull('id_livreur')
+            ->where('id_livreur', $request->user()->id_utilisateur)
             ->where('statut', Livraison::STATUT_EN_ATTENTE)
-            ->latest('created_at')
+            ->latest('updated_at')
             ->paginate(15);
 
-        return view('livraison.disponibles', compact('livraisons'));
+        return view('livraison.proposees', compact('livraisons'));
     }
 
     public function mesLivraisons(Request $request): View
@@ -34,6 +42,7 @@ class LivraisonController extends Controller
         abort_unless($request->user()->livreur, 403, "Réservé aux livreurs.");
 
         $livraisons = $request->user()->livreur->livraisons()
+            ->whereIn('statut', [Livraison::STATUT_PRISE_EN_CHARGE, Livraison::STATUT_EN_COURS, Livraison::STATUT_TERMINEE])
             ->with('commande.annonce.auteur', 'commande.acheteur')
             ->latest('updated_at')
             ->paginate(15);
@@ -50,9 +59,11 @@ class LivraisonController extends Controller
         ]);
 
         DB::transaction(function () use ($request, $livraison, $data) {
-            // Verrouillage optimiste : une livraison ne peut être acceptée qu'une fois.
+            // Verrouillage optimiste : la livraison assignée à ce livreur ne
+            // peut être acceptée qu'une fois, et par lui uniquement.
             $livraison = Livraison::where('id_livraison', $livraison->id_livraison)
-                ->whereNull('id_livreur')
+                ->where('id_livreur', $request->user()->id_utilisateur)
+                ->where('statut', Livraison::STATUT_EN_ATTENTE)
                 ->lockForUpdate()
                 ->firstOrFail();
 
@@ -63,7 +74,6 @@ class LivraisonController extends Controller
             $repartitionCommission = Paiement::calculerCommission($detail['montant_net_livraison']);
 
             $livraison->update([
-                'id_livreur' => $request->user()->id_utilisateur,
                 'frais_de_livraison' => $detail['frais_de_livraison'],
                 'reduction_sur_frais' => $detail['reduction_sur_frais'],
                 'montant_net_livraison' => $detail['montant_net_livraison'],
@@ -85,13 +95,73 @@ class LivraisonController extends Controller
 
             NotificationElevConnect::create([
                 'id_utilisateur' => $commande->id_acheteur,
-                'contenu' => "Votre commande #{$commande->id_commande} a été prise en charge par un livreur.",
+                'contenu' => "Votre commande #{$commande->id_commande} a été prise en charge par le livreur choisi.",
                 'type' => 'livraison',
                 'date_creation' => now(),
             ]);
         });
 
         return redirect()->route('livraison.mes')->with('status', 'Livraison acceptée.');
+    }
+
+    /**
+     * Refus d'une livraison proposée : conserve l'historique du refus et
+     * repropose automatiquement au livreur disponible le plus proche du
+     * point d'enlèvement. Si aucun candidat n'est trouvé, l'acheteur et le
+     * fournisseur sont notifiés pour qu'un autre choix soit fait (nouveau
+     * livreur ou retrait direct).
+     */
+    public function rejeter(Request $request, Livraison $livraison): RedirectResponse
+    {
+        $this->authorize('accepter', $livraison);
+
+        DB::transaction(function () use ($request, $livraison) {
+            $livraison = Livraison::where('id_livraison', $livraison->id_livraison)
+                ->where('id_livreur', $request->user()->id_utilisateur)
+                ->where('statut', Livraison::STATUT_EN_ATTENTE)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $commande = $livraison->commande()->with('annonce.auteur')->first();
+            $fournisseur = $commande->annonce->auteur;
+
+            $refus = $livraison->livreurs_ayant_refuse ?? [];
+            $refus[] = $request->user()->id_utilisateur;
+
+            $prochain = ($fournisseur->latitude && $fournisseur->longitude)
+                ? $livraison->trouverProchainCandidat($fournisseur->latitude, $fournisseur->longitude)
+                : null;
+
+            if ($prochain) {
+                $livraison->update([
+                    'id_livreur' => $prochain->id_utilisateur,
+                    'statut' => Livraison::STATUT_EN_ATTENTE,
+                    'livreurs_ayant_refuse' => $refus,
+                ]);
+
+                NotificationElevConnect::create([
+                    'id_utilisateur' => $prochain->id_utilisateur,
+                    'contenu' => "Une livraison vous est proposée pour la commande #{$commande->id_commande}.",
+                    'type' => 'livraison',
+                    'date_creation' => now(),
+                ]);
+            } else {
+                $livraison->update([
+                    'id_livreur' => null,
+                    'statut' => Livraison::STATUT_REJETEE,
+                    'livreurs_ayant_refuse' => $refus,
+                ]);
+
+                NotificationElevConnect::create([
+                    'id_utilisateur' => $commande->id_acheteur,
+                    'contenu' => "Aucun livreur disponible n'a accepté votre commande #{$commande->id_commande}. Choisissez un autre livreur ou optez pour un retrait direct.",
+                    'type' => 'livraison',
+                    'date_creation' => now(),
+                ]);
+            }
+        });
+
+        return redirect()->route('livraison.proposees')->with('status', 'Livraison refusée.');
     }
 
     public function demarrer(Request $request, Livraison $livraison): RedirectResponse
