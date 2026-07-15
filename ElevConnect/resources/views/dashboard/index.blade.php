@@ -19,7 +19,7 @@
   <div class="container">
     <div class="dash-head">
       <div>
-        <h1>Bonjour {{ $user->prenom }} 👋</h1>
+        <h1>Bonjour {{ $user->prenom }} </h1>
         <p>{{ $roleLabels[$user->role] ?? $user->role }} — voici un aperçu de votre activité.</p>
       </div>
       @if ($stats['notifications_non_lues'] > 0)
@@ -34,16 +34,21 @@
         <div class="stat-tile"><span class="form-hint">Annonces visibles</span><b>{{ $stats['annonces_visibles'] }}</b></div>
         <div class="stat-tile"><span class="form-hint">En attente de modération</span><b>{{ $stats['annonces_en_attente'] }}</b></div>
         <div class="stat-tile"><span class="form-hint">Commandes à traiter</span><b>{{ $stats['commandes_a_traiter'] }}</b></div>
+        <div class="stat-tile"><span class="form-hint">Ventes confirmées</span><b>{{ $stats['commandes_confirmees'] }}</b></div>
+        <div class="stat-tile"><span class="form-hint">Chiffre d'affaires net</span><b>{{ number_format($stats['chiffre_affaires'], 0, ',', ' ') }} <small style="font-size:0.9rem;">FCFA</small></b></div>
       @endif
 
       @if ($user->role === 'livreur')
         <div class="stat-tile"><span class="form-hint">Livraisons proposées</span><b>{{ $stats['livraisons_proposees'] }}</b></div>
         <div class="stat-tile"><span class="form-hint">Mes livraisons en cours</span><b>{{ $stats['mes_livraisons_en_cours'] }}</b></div>
+        <div class="stat-tile"><span class="form-hint">Livraisons terminées</span><b>{{ $stats['mes_livraisons_terminees'] }}</b></div>
+        <div class="stat-tile"><span class="form-hint">Revenus de livraison</span><b>{{ number_format($stats['revenus_livraison'], 0, ',', ' ') }} <small style="font-size:0.9rem;">FCFA</small></b></div>
       @endif
 
       @if ($user->role === 'veterinaire')
         <div class="stat-tile"><span class="form-hint">Mes services</span><b>{{ $stats['services_total'] }}</b></div>
         <div class="stat-tile"><span class="form-hint">Rendez-vous en attente</span><b>{{ $stats['rdv_en_attente'] }}</b></div>
+        <div class="stat-tile"><span class="form-hint">Rendez-vous réalisés</span><b>{{ $stats['rdv_realises'] }}</b></div>
         <div class="stat-tile"><span class="form-hint">Formule</span><b>{{ $stats['abonnement_formule'] }}</b></div>
       @endif
 
@@ -53,6 +58,42 @@
 
       <div class="stat-tile"><span class="form-hint">Mes commandes en cours</span><b>{{ $stats['mes_commandes_en_cours'] }}</b></div>
       <div class="stat-tile"><span class="form-hint">Total de mes commandes</span><b>{{ $stats['mes_commandes_total'] }}</b></div>
+    </div>
+
+    {{-- Graphiques --}}
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:24px;margin-bottom:40px;">
+      @if (isset($graphiques['commandes_recues']))
+        <div class="dash-card">
+          <h3 style="font-size:1rem;margin-bottom:16px;">Commandes reçues — 6 derniers mois</h3>
+          <canvas id="chartCommandesRecues" height="200"></canvas>
+        </div>
+      @endif
+
+      @if (isset($graphiques['annonces_par_statut']))
+        <div class="dash-card">
+          <h3 style="font-size:1rem;margin-bottom:16px;">Mes annonces par statut</h3>
+          <canvas id="chartAnnoncesStatut" height="200"></canvas>
+        </div>
+      @endif
+
+      @if (isset($graphiques['mes_livraisons']))
+        <div class="dash-card">
+          <h3 style="font-size:1rem;margin-bottom:16px;">Mes livraisons — 6 derniers mois</h3>
+          <canvas id="chartLivraisons" height="200"></canvas>
+        </div>
+      @endif
+
+      @if (isset($graphiques['mes_rdv']))
+        <div class="dash-card">
+          <h3 style="font-size:1rem;margin-bottom:16px;">Mes rendez-vous — 6 derniers mois</h3>
+          <canvas id="chartRdv" height="200"></canvas>
+        </div>
+      @endif
+
+      <div class="dash-card">
+        <h3 style="font-size:1rem;margin-bottom:16px;">Mes achats — 6 derniers mois</h3>
+        <canvas id="chartMesAchats" height="200"></canvas>
+      </div>
     </div>
 
     {{-- Raccourcis --}}
@@ -127,7 +168,62 @@
         <b>Notifications</b>
         <p class="form-hint" style="margin-top:6px;">Historique de mes alertes.</p>
       </a>
+      <a href="{{ route('profile.edit') }}" class="dash-card" style="margin-bottom:0;text-decoration:none;color:inherit;">
+        <b>Mon profil</b>
+        <p class="form-hint" style="margin-top:6px;">Informations personnelles et mot de passe.</p>
+      </a>
     </div>
   </div>
 </section>
 @endsection
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script>
+(function(){
+  const graphiques = @json($graphiques);
+  const couleurPrincipale = '#BD4A1E';
+  const couleurSecondaire = '#2F4F38';
+  const couleursDoughnut = ['#4C7854', '#D79B2A', '#BD4A1E'];
+
+  Chart.defaults.font.family = "'Manrope', sans-serif";
+  Chart.defaults.color = '#5B6B60';
+
+  function barChart(id, serie, couleur){
+    const el = document.getElementById(id);
+    if (!el || !serie) return;
+    new Chart(el, {
+      type: 'bar',
+      data: {
+        labels: serie.labels,
+        datasets: [{ data: serie.valeurs, backgroundColor: couleur, borderRadius: 6, maxBarThickness: 42 }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+      }
+    });
+  }
+
+  function doughnutChart(id, serie){
+    const el = document.getElementById(id);
+    if (!el || !serie) return;
+    new Chart(el, {
+      type: 'doughnut',
+      data: {
+        labels: serie.labels,
+        datasets: [{ data: serie.valeurs, backgroundColor: couleursDoughnut }]
+      },
+      options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+    });
+  }
+
+  barChart('chartCommandesRecues', graphiques.commandes_recues, couleurPrincipale);
+  doughnutChart('chartAnnoncesStatut', graphiques.annonces_par_statut);
+  barChart('chartLivraisons', graphiques.mes_livraisons, couleurSecondaire);
+  barChart('chartRdv', graphiques.mes_rdv, couleurSecondaire);
+  barChart('chartMesAchats', graphiques.mes_achats, couleurPrincipale);
+})();
+</script>
+@endpush

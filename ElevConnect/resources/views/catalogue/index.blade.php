@@ -51,21 +51,26 @@
     @else
       <div class="catalogue-grid">
         @foreach ($annonces as $annonce)
-          <a href="{{ route('catalogue.show', $annonce->id_annonce) }}" style="text-decoration:none;color:inherit;">
-            <div class="catalogue-card">
+          <div class="catalogue-card">
+            <a href="{{ route('catalogue.show', $annonce->id_annonce) }}" style="text-decoration:none;color:inherit;display:block;">
               <img src="{{ $annonce->image_1 ? asset('storage/'.$annonce->image_1) : '' }}" alt="{{ $annonce->titre }}">
-              <div class="body">
+            </a>
+            <div class="body">
+              <a href="{{ route('catalogue.show', $annonce->id_annonce) }}" style="text-decoration:none;color:inherit;">
                 <h4>{{ $annonce->titre }}</h4>
-                <div class="meta">
-                  {{ ucfirst($annonce->type_annonce) }} · {{ $annonce->nom }} {{ $annonce->prenom }}
-                  @isset($annonce->distance_km)
-                    · {{ number_format($annonce->distance_km, 1) }} km
-                  @endisset
-                </div>
-                <div class="price">{{ number_format($annonce->prix_unitaire, 0, ',', ' ') }} FCFA</div>
+              </a>
+              <div class="meta">
+                {{ ucfirst($annonce->type_annonce) }} · {{ $annonce->nom }} {{ $annonce->prenom }}
+                @isset($annonce->distance_km)
+                  · {{ number_format($annonce->distance_km, 1) }} km
+                @endisset
               </div>
+              <div class="price">{{ number_format($annonce->prix_unitaire, 0, ',', ' ') }} FCFA</div>
+              @if (! auth()->check() || auth()->id() !== $annonce->id_utilisateur)
+                <a href="{{ route('commandes.create', $annonce->id_annonce) }}" class="btn btn-primary btn-sm" style="width:100%;text-align:center;justify-content:center;margin-top:10px;">Commander</a>
+              @endif
             </div>
-          </a>
+          </div>
         @endforeach
       </div>
 

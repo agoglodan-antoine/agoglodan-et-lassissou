@@ -18,13 +18,11 @@
             <p style="color:var(--clay-dark);font-weight:700;margin-top:6px;">★ {{ number_format($veterinaire->note_moyenne, 1) }} ({{ $veterinaire->nombre_avis }} avis)</p>
           @endif
         </div>
-        @auth
-          @if (auth()->user()->role === \App\Models\Utilisateur::ROLE_ELEVEUR)
-            <a href="{{ route('rendez-vous.create', $veterinaire) }}" class="btn btn-primary">Prendre rendez-vous</a>
-          @endif
+        @if (auth()->check() && auth()->user()->role !== \App\Models\Utilisateur::ROLE_ELEVEUR)
+          <p class="form-hint">Seul un compte Éleveur peut prendre rendez-vous.</p>
         @else
-          <a href="{{ route('login') }}" class="btn btn-primary">Se connecter pour prendre RDV</a>
-        @endauth
+          <a href="{{ route('rendez-vous.create', $veterinaire) }}" class="btn btn-primary">Prendre rendez-vous</a>
+        @endif
       </div>
 
       <h3 style="font-size:1.1rem;margin-bottom:14px;">Services proposés</h3>

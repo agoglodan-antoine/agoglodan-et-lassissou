@@ -39,14 +39,20 @@ class CommandeController extends Controller
             $livreurs = Livreur::candidatsProches($annonce->auteur->latitude, $annonce->auteur->longitude);
         }
 
-        $reductions = $annonce->reductions->map(fn($r) => [
-    'min' => (int) $r->quantite_min,
-    'max' => (int) $r->quantite_max,
-    'pct' => (float) $r->pourcentage_reduction,
-])->values();
+        // Barème de réduction pré-calculé côté serveur, sous forme de tableau
+        // PHP simple : @json() sur une expression chaînée (->map(fn...)) est
+        // fragile côté Blade (comptage des parenthèses/crochets imbriqués),
+        // on évite donc de faire ce calcul directement dans la vue.
+        $tranchesReduction = [];
+        foreach ($annonce->reductions as $reduction) {
+            $tranchesReduction[] = [
+                'min' => (int) $reduction->quantite_min,
+                'max' => (int) $reduction->quantite_max,
+                'pct' => (float) $reduction->pourcentage_reduction,
+            ];
+        }
 
-return view('commandes.create', compact('annonce', 'livreurs', 'reductions'));
-        //return view('commandes.create', compact('annonce', 'livreurs'));
+        return view('commandes.create', compact('annonce', 'livreurs', 'tranchesReduction'));
     }
 
     public function store(Request $request, Annonce $annonce): RedirectResponse

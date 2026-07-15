@@ -12,7 +12,7 @@
     <div class="dash-card">
       <div class="dash-head" style="margin-bottom:20px;">
         <div>
-          <h1 style="font-size:1.5rem;">Commande #{{ $commande->id_commande }}</h1>
+          <h1 style="font-size:1.5rem;">Commande #{{ $commande->code_authenticite }}</h1>
           <p>{{ $commande->annonce->titre }}</p>
         </div>
         <span class="status-pill {{ in_array($commande->statut, ['confirmee','validee']) ? 'visible' : ($commande->statut === 'annulee' || $commande->statut === 'refusee' || $commande->statut === 'en_litige' ? 'rejetee' : 'en_attente') }}">

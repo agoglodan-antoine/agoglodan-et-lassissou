@@ -19,6 +19,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LivraisonController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PaiementController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RendezVousController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\ServiceVeterinaireController;
@@ -76,6 +77,11 @@ Route::middleware('auth')->group(function () {
 
     // Centre de notifications, commun à tous les rôles.
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+
+    // Gestion de profil — commune à tous les rôles.
+    Route::get('/mon-profil', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('/mon-profil', [ProfileController::class, 'update'])->name('profile.update');
+    Route::put('/mon-profil/mot-de-passe', [ProfileController::class, 'updatePassword'])->name('profile.password');
 
     // Tableau de bord personnel : vue d'ensemble adaptée au rôle (DashboardController).
     // L'Administrateur est redirigé vers sa propre vue d'ensemble (plus riche),

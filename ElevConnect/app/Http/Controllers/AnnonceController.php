@@ -75,7 +75,19 @@ class AnnonceController extends Controller
 
         $annonce->load('reductions');
 
-        return view('annonces.edit', compact('annonce'));
+        // Tableau PHP simple pré-calculé côté serveur — voir la note dans
+        // CommandeController::create() sur la fragilité de @json() combiné
+        // à une expression chaînée directement dans la vue.
+        $reductionsExistantes = [];
+        foreach ($annonce->reductions as $reduction) {
+            $reductionsExistantes[] = [
+                'quantite_min' => $reduction->quantite_min,
+                'quantite_max' => $reduction->quantite_max,
+                'pourcentage_reduction' => $reduction->pourcentage_reduction,
+            ];
+        }
+
+        return view('annonces.edit', compact('annonce', 'reductionsExistantes'));
     }
 
     public function update(UpdateAnnonceRequest $request, Annonce $annonce): RedirectResponse

@@ -90,7 +90,7 @@
 <script>
 (function(){
   const prixUnitaire = {{ (float) $annonce->prix_unitaire }};
-  const tranches = @json($reductions);
+  const tranches = @json($tranchesReduction);
 
   const qteInput = document.getElementById('quantite');
   const brutEl = document.getElementById('montantBrut');

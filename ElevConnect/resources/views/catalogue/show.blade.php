@@ -54,15 +54,11 @@
         <b>Zone :</b> {{ $annonce->auteur->adresse ?? 'Non renseignée' }}
       </div>
 
-      @auth
-        @if (auth()->id() !== $annonce->id_utilisateur)
-          <a href="{{ route('commandes.create', $annonce) }}" class="btn btn-primary" style="margin-top:8px;">Commander cette annonce</a>
-        @else
-          <p class="form-hint" style="margin-top:8px;">Ceci est votre propre annonce.</p>
-        @endif
+      @if (! auth()->check() || auth()->id() !== $annonce->id_utilisateur)
+        <a href="{{ route('commandes.create', $annonce) }}" class="btn btn-primary" style="margin-top:8px;">Commander cette annonce</a>
       @else
-        <a href="{{ route('login') }}" class="btn btn-primary" style="margin-top:8px;">Se connecter pour commander</a>
-      @endauth
+        <p class="form-hint" style="margin-top:8px;">Ceci est votre propre annonce.</p>
+      @endif
     </div>
   </div>
 </section>

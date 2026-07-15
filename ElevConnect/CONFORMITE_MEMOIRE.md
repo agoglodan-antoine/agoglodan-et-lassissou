@@ -129,16 +129,14 @@ de mots de passe natif de Laravel. **Nécessite un réglage manuel de
 `config/auth.php`** (fichier non livré dans ce dépôt) — voir le README pour
 la configuration exacte à appliquer.
 
-### 3.7 — Gestion de profil (modifier ses informations)
+### 3.7 — Gestion de profil (modifier ses informations) — ✅ CORRIGÉ
 
 Exigence fonctionnelle explicite (chap. 2) : *"gestion de profil"*, pour
 tous les rôles.
 
-**Ce qui a été développé** : uniquement l'inscription et la connexion —
-aucune page permettant à un utilisateur déjà inscrit de modifier ses
-informations (nom, téléphone, adresse, position, spécialité, etc.).
-
-→ **Écart confirmé.**
+**Correction apportée** (voir README_ROADMAP.md, §10.12) :
+`ProfileController` (`/mon-profil`), informations communes + attributs de
+rôle + recapture de la position GPS + changement de mot de passe séparé.
 
 ### 3.8 — Planning de disponibilité du livreur
 
@@ -194,7 +192,7 @@ correcteur compare le code aux diagrammes de classes/séquence.
 |---|---|---|---|
 | 1 | Assignation de la livraison à un livreur choisi (3.1) + livraison optionnelle (3.2) | Élevé — retouche du flux de commande | ✅ Fait |
 | 2 | Réinitialisation de mot de passe (3.6) | Faible — fonctionnalité standard Laravel | ✅ Fait |
-| 3 | Gestion de profil (3.7) | Moyen | À faire |
+| 3 | Gestion de profil (3.7) | Moyen | ✅ Fait |
 | 4 | Tâche planifiée d'expiration des abonnements (3.5) | Faible | À faire |
 | 5 | Planning de disponibilité du livreur (3.8) | Moyen | À faire |
 | 6 | Politique de mot de passe (3.9) | Très faible | ✅ Fait |

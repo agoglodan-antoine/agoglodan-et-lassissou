@@ -172,28 +172,33 @@
 
     <div class="listings-track" id="listingsTrack">
       @forelse ($annonces as $annonce)
-        <a href="{{ route('catalogue.show', $annonce) }}" style="text-decoration:none;color:inherit;">
         <article class="listing-card">
-          <div class="listing-media">
-            <span class="listing-badge {{ $annonce->type_annonce === 'animal' ? 'made' : '' }}">
-              {{ ucfirst($annonce->type_annonce) }}
-            </span>
-            @if ($annonce->image_1)
-              <img src="{{ asset('storage/'.$annonce->image_1) }}" alt="{{ $annonce->titre }}" style="width:100%;height:100%;object-fit:cover;">
-            @else
-              <svg viewBox="0 0 24 24"><path d="M4 15c-1.5-1-2-3 0-4 .3-2 2-3 4-2.6C9 6.7 11 6 12 7c1-1 3-.3 4 1.4 2-.4 3.7.6 4 2.6 2 1 1.5 3 0 4-.3 2.6-2.5 4-5 4H9c-2.5 0-4.7-1.4-5-4z"/></svg>
-            @endif
-          </div>
+          <a href="{{ route('catalogue.show', $annonce) }}" style="text-decoration:none;color:inherit;display:block;">
+            <div class="listing-media">
+              <span class="listing-badge {{ $annonce->type_annonce === 'animal' ? 'made' : '' }}">
+                {{ ucfirst($annonce->type_annonce) }}
+              </span>
+              @if ($annonce->image_1)
+                <img src="{{ asset('storage/'.$annonce->image_1) }}" alt="{{ $annonce->titre }}" style="width:100%;height:100%;object-fit:cover;">
+              @else
+                <svg viewBox="0 0 24 24"><path d="M4 15c-1.5-1-2-3 0-4 .3-2 2-3 4-2.6C9 6.7 11 6 12 7c1-1 3-.3 4 1.4 2-.4 3.7.6 4 2.6 2 1 1.5 3 0 4-.3 2.6-2.5 4-5 4H9c-2.5 0-4.7-1.4-5-4z"/></svg>
+              @endif
+            </div>
+          </a>
           <div class="listing-body">
-            <h4>{{ $annonce->titre }}</h4>
+            <a href="{{ route('catalogue.show', $annonce) }}" style="text-decoration:none;color:inherit;">
+              <h4>{{ $annonce->titre }}</h4>
+            </a>
             <div class="listing-meta">{{ $annonce->auteur->adresse ?? 'Localisation non renseignée' }}</div>
             <div class="listing-price">
               <b>{{ number_format($annonce->prix_unitaire, 0, ',', ' ') }} FCFA</b>
               <span>{{ $annonce->auteur->nom ?? '' }} {{ $annonce->auteur->prenom ?? '' }}</span>
             </div>
+            @if (! auth()->check() || auth()->id() !== $annonce->id_utilisateur)
+              <a href="{{ route('commandes.create', $annonce) }}" class="btn btn-primary btn-sm" style="width:100%;text-align:center;justify-content:center;margin-top:12px;">Commander</a>
+            @endif
           </div>
         </article>
-        </a>
       @empty
         <article class="listing-card">
           <div class="listing-body">

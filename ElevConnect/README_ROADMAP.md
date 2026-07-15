@@ -391,6 +391,60 @@ notifications).
 correction de migration listée ci-dessus (les points 6, 7, 9 et 10 ajoutent
 ou modifient des tables).
 
+11. **Corrections rapportées après tests utilisateur** :
+    - **Erreur Blade `Unclosed '[' ... does not match ')'`** sur
+      `commandes/create.blade.php` : `@json($collection->map(fn...))`
+      compte mal les parenthèses/crochets imbriqués d'une expression
+      chaînée. Corrigé partout où ce motif existait
+      (`commandes/create.blade.php`, `annonces/edit.blade.php`, nouveaux
+      graphiques du tableau de bord) en calculant systématiquement le
+      tableau PHP simple **dans le contrôleur**, puis en ne passant à
+      `@json()` qu'une variable déjà prête (`$tranchesReduction`,
+      `$reductionsExistantes`, `$graphiques`...) — plus aucune expression
+      chaînée à l'intérieur d'un `@json()`.
+    - **Cartes d'annonces non homogènes** (accueil et catalogue) : le
+      bouton "Commander" nécessitait un lien complet enrobant la carte
+      (`<a>` autour de `<article>`), ce qui cassait l'étirement flex/grid
+      (le vrai enfant du conteneur devenait le `<a>`, sans largeur/hauteur
+      forcée). Les cartes sont maintenant elles-mêmes l'élément flex/grid
+      direct, avec un lien interne sur l'image/le titre et un bouton
+      "Commander" séparé — plus de carte plus haute ou plus étroite qu'une
+      autre dans une même rangée.
+    - **Bouton "Commander" ajouté directement sur les cartes** (accueil et
+      `/annonces`), plus besoin de passer par la fiche détaillée.
+    - **Plus de lien "Se connecter pour commander"** : le bouton
+      "Commander" (et "Prendre rendez-vous") pointe désormais toujours vers
+      la route protégée, que l'utilisateur soit connecté ou non. Laravel
+      capture automatiquement l'URL visée par un invité qui touche une
+      route `auth` et `redirect()->intended()` (déjà utilisé dans
+      `LoginController`) l'y renvoie après connexion — plus besoin de lien
+      de connexion séparé qui casse ce mécanisme.
+    - **Lien "Abonnements" retiré** de la nav (desktop et mobile).
+    - **Groupe "Mon espace" retiré** du panneau mobile (les six liens
+      rapides `?role=...` vers l'inscription).
+    - **Tableaux de bord enrichis** : indicateurs supplémentaires
+      (chiffre d'affaires, revenus de livraison, rendez-vous réalisés,
+      volume d'affaires global côté admin...) et **graphiques Chart.js**
+      (activité des 6 derniers mois par métier, répartition par statut,
+      répartition des utilisateurs par rôle côté admin). Chart.js est
+      chargé depuis un CDN (`cdn.jsdelivr.net`), sans dépendance npm à
+      installer.
+12. **Gestion de profil** (`CONFORMITE_MEMOIRE.md`, §3.7) — exigence
+    fonctionnelle explicite pour tous les rôles :
+    - `ProfileController` (`/mon-profil`) permet de modifier les
+      informations communes (nom, prénom, email, téléphone, adresse,
+      position) ainsi que les attributs propres au rôle courant
+      (exploitation, boutique, spécialité, zone d'intervention, moyen de
+      transport, zone de couverture, type d'acheteur) — chaque champ n'est
+      affiché que pour le rôle concerné.
+    - La position GPS peut être **recapturée** à tout moment via le même
+      mécanisme `navigator.geolocation` que l'inscription.
+    - Le **changement de mot de passe** est un formulaire séparé,
+      nécessitant le mot de passe actuel (règle Laravel `current_password`)
+      et respectant la même politique de composition (8 caractères, une
+      lettre, un chiffre).
+    - Accessible depuis le tableau de bord ("Mon profil").
+
 ## 11. Installation (WampServer / PHP 8.3 / MySQL)
 
 Le bac à sable de développement ne dispose pas de PHP/Composer ni d'accès

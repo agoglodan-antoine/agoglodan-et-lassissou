@@ -128,7 +128,7 @@
 
   addBtn.addEventListener('click', () => addRow());
 
-  const existing = @json($annonce->reductions->map->only(['quantite_min', 'quantite_max', 'pourcentage_reduction']));
+  const existing = @json($reductionsExistantes);
   existing.forEach(addRow);
 })();
 </script>
