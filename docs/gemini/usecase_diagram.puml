@@ -1,0 +1,115 @@
+@startuml usecase_diagram
+' Style commun — diagrammes ElevConnect
+skinparam backgroundColor #FFFFFF
+skinparam dpi 180
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam linetype ortho
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 22
+skinparam TitleFontName SansSerif
+skinparam TitleFontSize 28
+skinparam TitleFontColor #17324D
+skinparam ArrowColor #456A7D
+skinparam ArrowFontColor #29485B
+skinparam ArrowThickness 1.4
+skinparam NoteBackgroundColor #FFF8E8
+skinparam NoteBorderColor #E5AE45
+skinparam NoteFontColor #5B481E
+skinparam PackageBorderColor #9AB7A7
+skinparam PackageBackgroundColor #F4FAF6
+skinparam PackageFontColor #1F5B43
+skinparam PackageFontStyle bold
+skinparam ActivityBackgroundColor #F0F8F3
+skinparam ActivityBorderColor #2F7D5B
+skinparam ActivityFontColor #17324D
+skinparam ActivityDiamondBackgroundColor #FFF3D8
+skinparam ActivityDiamondBorderColor #D8952F
+skinparam ActivityBarColor #2F7D5B
+skinparam ClassBackgroundColor #FFFFFF
+skinparam ClassBorderColor #2F7D5B
+skinparam ClassHeaderBackgroundColor #E4F3EA
+skinparam ClassFontColor #17324D
+skinparam EntityBackgroundColor #FFFFFF
+skinparam EntityBorderColor #2F7D5B
+skinparam EntityFontColor #17324D
+skinparam StateBackgroundColor #EDF7F1
+skinparam StateBorderColor #2F7D5B
+skinparam StateFontColor #17324D
+skinparam UsecaseBackgroundColor #EAF4F8
+skinparam UsecaseBorderColor #3E7490
+skinparam UsecaseFontColor #17324D
+skinparam SequenceLifeLineBorderColor #9CB4C1
+skinparam SequenceLifeLineBackgroundColor #FFFFFF
+skinparam SequenceParticipantBackgroundColor #EAF4F8
+skinparam SequenceParticipantBorderColor #3E7490
+skinparam SequenceActorBackgroundColor #FFFFFF
+skinparam SequenceActorBorderColor #2F7D5B
+skinparam SequenceGroupBackgroundColor #F7FBFD
+skinparam SequenceGroupBorderColor #9CB4C1
+skinparam nodesep 15
+skinparam ranksep 18
+skinparam ActivityMargin 5
+skinparam ActivityPadding 4
+skinparam ParticipantPadding 10
+skinparam BoxPadding 4
+skinparam Padding 2
+skinparam StatePadding 4
+
+left to right direction
+title Cas d'utilisation d'ElevConnect 
+
+actor "Utilisateur" as USER
+actor "Acheteur" as BUYER
+actor "Fournisseur\n(éleveur ou vendeur)" as SELLER
+actor "Vétérinaire" as VET
+actor "Livreur" as COURIER
+actor "Administrateur" as ADMIN
+
+BUYER --|> USER
+SELLER --|> USER
+VET --|> USER
+COURIER --|> USER
+ADMIN --|> USER
+
+rectangle "Système ElevConnect" {
+  usecase "Gérer son profil" as UC_PROFILE
+  usecase "Consulter le catalogue" as UC_CATALOG
+  usecase "Publier une annonce" as UC_LIST
+  usecase "Passer une commande" as UC_ORDER
+  usecase "Payer une commande" as UC_PAY
+  usecase "Gérer une commande" as UC_MANAGE
+  usecase "Confirmer la réception" as UC_RECEIVE
+  usecase "Assurer une livraison" as UC_DELIVER
+  usecase "Prendre rendez-vous" as UC_APPOINTMENT
+  usecase "Gérer les services vétérinaires" as UC_SERVICES
+  usecase "Modérer les annonces" as UC_MODERATE
+  usecase "Superviser paiements\net utilisateurs" as UC_ADMIN
+}
+
+USER --> UC_PROFILE
+USER --> UC_CATALOG
+USER --> UC_ORDER
+USER --> UC_RECEIVE
+SELLER --> UC_LIST
+SELLER --> UC_MANAGE
+VET --> UC_SERVICES
+VET --> UC_APPOINTMENT
+COURIER --> UC_DELIVER
+ADMIN --> UC_MODERATE
+ADMIN --> UC_ADMIN
+
+UC_ORDER .> UC_PAY : <<include>>
+UC_DELIVER .> UC_RECEIVE : <<extend>>\nsi livraison
+
+note bottom of UC_RECEIVE
+  Le QR code est scanné seulement
+  lorsqu'un livreur intervient.
+end note
+
+note bottom of UC_ORDER
+  Tout actor inscrit peut commander,
+  y compris l'Administrateur, sauf sur
+  sa propre annonce.
+end note
+@enduml

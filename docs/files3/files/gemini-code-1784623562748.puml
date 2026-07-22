@@ -1,0 +1,58 @@
+@startuml organigramme finanex
+
+skinparam backgroundColor #FFFFFF
+skinparam dpi 180
+skinparam shadowing false
+skinparam roundcorner 10
+skinparam linetype ortho
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 14
+
+' Style unique pour toutes les cases (Bleu clair vif)
+skinparam rectangle {
+    BackgroundColor #33C5FF
+    BorderColor #0088CC
+    FontColor #FFFFFF
+    FontStyle bold
+}
+
+skinparam ArrowColor #0088CC
+skinparam ArrowThickness 1.6
+skinparam TitleFontName SansSerif
+skinparam TitleFontSize 18
+skinparam TitleFontColor #17324D
+
+top to bottom direction
+title Organigramme Fonctionnel
+
+rectangle "Direction Générale" as DG
+rectangle "Secrétariat" as SEC
+
+rectangle "Pôle Conseil" as PC
+rectangle "Pôle Ingénierie" as PI
+rectangle "Pôle Formation" as PF
+
+rectangle "Audit & Conseil" as PC1
+rectangle "Cybersécurité" as PC2
+
+rectangle "Développement" as PI1
+rectangle "Infrastructures" as PI2
+
+rectangle "Formation" as PF1
+rectangle "Gestion du changement" as PF2
+
+DG -down-> SEC
+SEC -down-> PC
+SEC -down-> PI
+SEC -down-> PF
+
+PC -down-> PC1
+PC -down-> PC2
+
+PI -down-> PI1
+PI -down-> PI2
+
+PF -down-> PF1
+PF -down-> PF2
+
+@enduml

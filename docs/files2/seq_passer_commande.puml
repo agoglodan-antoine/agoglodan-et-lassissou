@@ -1,0 +1,105 @@
+@startuml seq_passer_commande
+' Style commun — diagrammes ElevConnect
+' SVG : format vectoriel net à toute taille. PNG : export haute définition.
+skinparam backgroundColor #FFFFFF
+skinparam dpi 180
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam linetype ortho
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 16
+skinparam TitleFontName SansSerif
+skinparam TitleFontSize 22
+skinparam TitleFontColor #17324D
+skinparam ArrowColor #456A7D
+skinparam ArrowFontColor #29485B
+skinparam ArrowThickness 1.4
+skinparam NoteBackgroundColor #FFF8E8
+skinparam NoteBorderColor #E5AE45
+skinparam NoteFontColor #5B481E
+skinparam PackageBorderColor #9AB7A7
+skinparam PackageBackgroundColor #F4FAF6
+skinparam PackageFontColor #1F5B43
+skinparam PackageFontStyle bold
+skinparam ActivityBackgroundColor #F0F8F3
+skinparam ActivityBorderColor #2F7D5B
+skinparam ActivityFontColor #17324D
+skinparam ActivityDiamondBackgroundColor #FFF3D8
+skinparam ActivityDiamondBorderColor #D8952F
+skinparam ActivityBarColor #2F7D5B
+skinparam ClassBackgroundColor #FFFFFF
+skinparam ClassBorderColor #2F7D5B
+skinparam ClassHeaderBackgroundColor #E4F3EA
+skinparam ClassFontColor #17324D
+skinparam EntityBackgroundColor #FFFFFF
+skinparam EntityBorderColor #2F7D5B
+skinparam EntityFontColor #17324D
+skinparam StateBackgroundColor #EDF7F1
+skinparam StateBorderColor #2F7D5B
+skinparam StateFontColor #17324D
+skinparam UsecaseBackgroundColor #EAF4F8
+skinparam UsecaseBorderColor #3E7490
+skinparam UsecaseFontColor #17324D
+skinparam SequenceLifeLineBorderColor #9CB4C1
+skinparam SequenceLifeLineBackgroundColor #FFFFFF
+skinparam SequenceParticipantBackgroundColor #EAF4F8
+skinparam SequenceParticipantBorderColor #3E7490
+skinparam SequenceActorBackgroundColor #FFFFFF
+skinparam SequenceActorBorderColor #2F7D5B
+skinparam SequenceGroupBackgroundColor #F7FBFD
+skinparam SequenceGroupBorderColor #9CB4C1
+skinparam nodesep 22
+skinparam ranksep 24
+skinparam ActivityMargin 10
+skinparam ActivityPadding 8
+skinparam ParticipantPadding 20
+skinparam BoxPadding 8
+skinparam Padding 4
+skinparam StatePadding 8
+
+autonumber
+actor Client as ACH
+boundary "Interface web" as UI
+control "ElevConnect" as APP
+database "Base de données" as DB
+actor Fournisseur as FOUR
+actor Livreur as LIV
+
+title Commande et réception 
+
+note over ACH
+  « Client » désigne tout acteur inscrit
+  (y compris Administrateur), à l'exception
+  du propriétaire de l'annonce concernée.
+end note
+
+ACH -> UI : choisit l'annonce et le retrait
+UI -> APP : créerCommande(annonce, quantité, mode)
+APP -> DB : vérifie le stock et enregistre
+APP --> UI : affiche le montant à payer
+
+ACH -> UI : paie la commande
+UI -> APP : confirmerPaiement()
+APP -> DB : commande payée
+APP -> FOUR : notifie la commande
+
+FOUR -> UI : accepte la commande
+UI -> APP : validerCommande()
+APP -> DB : commande validée
+
+alt livraison choisie
+  APP -> LIV : propose la livraison
+  LIV -> UI : prend en charge et livre
+  UI -> APP : confirme la livraison
+  ACH -> UI : scanne le QR code
+  UI -> APP : confirmerRéception(code)
+  APP -> DB : commande confirmée
+else retrait direct
+  ACH -> UI : confirme la réception
+  UI -> APP : confirmerRéception()
+  APP -> DB : commande confirmée
+end
+
+APP -> DB : crée les versements
+APP --> ACH : confirme la commande
+@enduml

@@ -1,0 +1,51 @@
+@startuml organigramme_finanex
+' Style commun — diagrammes ElevConnect
+' SVG : format vectoriel net à toute taille. PNG : export haute définition.
+skinparam backgroundColor #FFFFFF
+skinparam dpi 180
+skinparam shadowing false
+skinparam roundcorner 10
+skinparam linetype ortho
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 15
+skinparam TitleFontName SansSerif
+skinparam TitleFontSize 19
+skinparam TitleFontColor #17324D
+skinparam ArrowColor #45505A
+skinparam ArrowThickness 1.6
+skinparam RectangleBorderColor #45505A
+skinparam RectangleFontColor #17324D
+skinparam RectangleFontStyle bold
+skinparam nodesep 20
+skinparam ranksep 22
+
+top to bottom direction
+title 2. Organigramme fonctionnel
+
+rectangle "DIRECTION GÉNÉRALE\nM. Germain D. GBAGUIDI" as DG #EBE2FB
+rectangle "SECRÉTARIAT\nServices administratifs" as SEC #F4F1E2
+
+rectangle "PÔLE CONSEIL\nAudit & Cybersécurité" as PC #F8D0C2
+rectangle "PÔLE INGÉNIERIE\nLogicielle & Infrastructures" as PI #CAEEDF
+rectangle "PÔLE FORMATION\nAccompagnement au changement" as PF #EDD6B5
+
+rectangle "Audit\n& Conseil" as PC1 #FBE3DA
+rectangle "Cyber-\nsécurité" as PC2 #FBE3DA
+
+rectangle "Dév.\nLogiciel" as PI1 #E2F7EE
+rectangle "Infra-\nstructures" as PI2 #E2F7EE
+
+rectangle "Formation\n& Coaching" as PF1 #F3E7CC
+rectangle "Change\nManagement" as PF2 #F3E7CC
+
+DG -down-> SEC
+SEC -down-> PC
+SEC -down-> PI
+SEC -down-> PF
+PC -down-> PC1
+PC -down-> PC2
+PI -down-> PI1
+PI -down-> PI2
+PF -down-> PF1
+PF -down-> PF2
+@enduml

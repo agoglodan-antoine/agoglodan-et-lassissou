@@ -1,0 +1,75 @@
+@startuml architecture
+' Style commun — diagrammes ElevConnect
+skinparam backgroundColor #FFFFFF
+skinparam dpi 180
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam linetype ortho
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 22
+skinparam TitleFontName SansSerif
+skinparam TitleFontSize 28
+skinparam TitleFontColor #17324D
+skinparam ArrowColor #456A7D
+skinparam ArrowFontColor #29485B
+skinparam ArrowThickness 1.4
+skinparam NoteBackgroundColor #FFF8E8
+skinparam NoteBorderColor #E5AE45
+skinparam NoteFontColor #5B481E
+skinparam PackageBorderColor #9AB7A7
+skinparam PackageBackgroundColor #F4FAF6
+skinparam PackageFontColor #1F5B43
+skinparam PackageFontStyle bold
+skinparam ActivityBackgroundColor #F0F8F3
+skinparam ActivityBorderColor #2F7D5B
+skinparam ActivityFontColor #17324D
+skinparam ActivityDiamondBackgroundColor #FFF3D8
+skinparam ActivityDiamondBorderColor #D8952F
+skinparam ActivityBarColor #2F7D5B
+skinparam ClassBackgroundColor #FFFFFF
+skinparam ClassBorderColor #2F7D5B
+skinparam ClassHeaderBackgroundColor #E4F3EA
+skinparam ClassFontColor #17324D
+skinparam EntityBackgroundColor #FFFFFF
+skinparam EntityBorderColor #2F7D5B
+skinparam EntityFontColor #17324D
+skinparam StateBackgroundColor #EDF7F1
+skinparam StateBorderColor #2F7D5B
+skinparam StateFontColor #17324D
+skinparam UsecaseBackgroundColor #EAF4F8
+skinparam UsecaseBorderColor #3E7490
+skinparam UsecaseFontColor #17324D
+skinparam SequenceLifeLineBorderColor #9CB4C1
+skinparam SequenceLifeLineBackgroundColor #FFFFFF
+skinparam SequenceParticipantBackgroundColor #EAF4F8
+skinparam SequenceParticipantBorderColor #3E7490
+skinparam SequenceActorBackgroundColor #FFFFFF
+skinparam SequenceActorBorderColor #2F7D5B
+skinparam SequenceGroupBackgroundColor #F7FBFD
+skinparam SequenceGroupBorderColor #9CB4C1
+skinparam nodesep 15
+skinparam ranksep 18
+skinparam ActivityMargin 5
+skinparam ActivityPadding 4
+skinparam ParticipantPadding 10
+skinparam BoxPadding 4
+skinparam Padding 2
+skinparam StatePadding 4
+
+top to bottom direction
+title Architecture simplifiée d'ElevConnect
+
+rectangle "**Présentation**\nNavigateur web\nBlade · Tailwind · JavaScript" as CLIENT #EAF4F8
+rectangle "**Application ElevConnect**\nLaravel : routes, contrôleurs, règles métier\nNotifications · QR code · paiements" as APP #EAF4EA
+database "**Données**\nMySQL" as DB #FFF8E8
+cloud "**Services externes**\nMobile Money · Carte bancaire" as PAYMENT #F5EEF9
+
+CLIENT --> APP : HTTPS
+APP --> DB : Eloquent / SQL
+APP --> PAYMENT : encaissements\net versements
+
+note right of APP
+  L'application orchestre les annonces,
+  commandes, livraisons et rendez-vous.
+end note
+@enduml

@@ -1,0 +1,96 @@
+@startuml seq_paiement_versement
+' Style commun — diagrammes ElevConnect
+skinparam backgroundColor #FFFFFF
+skinparam dpi 180
+skinparam shadowing false
+skinparam roundcorner 12
+skinparam linetype ortho
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 22
+skinparam TitleFontName SansSerif
+skinparam TitleFontSize 28
+skinparam TitleFontColor #17324D
+skinparam ArrowColor #456A7D
+skinparam ArrowFontColor #29485B
+skinparam ArrowThickness 1.4
+skinparam NoteBackgroundColor #FFF8E8
+skinparam NoteBorderColor #E5AE45
+skinparam NoteFontColor #5B481E
+skinparam PackageBorderColor #9AB7A7
+skinparam PackageBackgroundColor #F4FAF6
+skinparam PackageFontColor #1F5B43
+skinparam PackageFontStyle bold
+skinparam ActivityBackgroundColor #F0F8F3
+skinparam ActivityBorderColor #2F7D5B
+skinparam ActivityFontColor #17324D
+skinparam ActivityDiamondBackgroundColor #FFF3D8
+skinparam ActivityDiamondBorderColor #D8952F
+skinparam ActivityBarColor #2F7D5B
+skinparam ClassBackgroundColor #FFFFFF
+skinparam ClassBorderColor #2F7D5B
+skinparam ClassHeaderBackgroundColor #E4F3EA
+skinparam ClassFontColor #17324D
+skinparam EntityBackgroundColor #FFFFFF
+skinparam EntityBorderColor #2F7D5B
+skinparam EntityFontColor #17324D
+skinparam StateBackgroundColor #EDF7F1
+skinparam StateBorderColor #2F7D5B
+skinparam StateFontColor #17324D
+skinparam UsecaseBackgroundColor #EAF4F8
+skinparam UsecaseBorderColor #3E7490
+skinparam UsecaseFontColor #17324D
+skinparam SequenceLifeLineBorderColor #9CB4C1
+skinparam SequenceLifeLineBackgroundColor #FFFFFF
+skinparam SequenceParticipantBackgroundColor #EAF4F8
+skinparam SequenceParticipantBorderColor #3E7490
+skinparam SequenceActorBackgroundColor #FFFFFF
+skinparam SequenceActorBorderColor #2F7D5B
+skinparam SequenceGroupBackgroundColor #F7FBFD
+skinparam SequenceGroupBorderColor #9CB4C1
+skinparam nodesep 12
+skinparam ranksep 15
+skinparam ActivityMargin 5
+skinparam ActivityPadding 4
+skinparam ParticipantPadding 10
+skinparam BoxPadding 4
+skinparam Padding 2
+skinparam StatePadding 4
+
+autonumber
+actor Client as ACH
+boundary "Interface web" as UI
+control "Service paiement" as PAY
+participant "Passerelle de paiement" as GATE
+database "Base de données" as DB
+actor Fournisseur as FOUR
+actor Livreur as LIV
+
+title Paiement, séquestre et versements 
+
+ACH -> UI : confirme le paiement
+UI -> PAY : initierPaiement(commande, moyen)
+PAY -> GATE : débiter le total
+GATE --> PAY : paiement accepté
+PAY -> DB : enregistre le paiement séquestré
+PAY -> FOUR : notifie le paiement reçu
+
+note over ACH, LIV
+  Le versement intervient après la confirmation
+  de la réception de la commande.
+end note
+
+ACH -> UI : confirme la réception
+UI -> PAY : libérerFonds()
+PAY -> DB : confirme la commande
+PAY -> GATE : créditer le fournisseur
+GATE --> PAY : versement réussi
+PAY -> DB : enregistre le versement fournisseur
+PAY -> FOUR : notifie le versement
+
+opt une livraison a été effectuée
+  PAY -> GATE : créditer le livreur
+  GATE --> PAY : versement réussi
+  PAY -> DB : enregistre le versement livreur
+  PAY -> LIV : notifie le versement
+end
+@enduml
