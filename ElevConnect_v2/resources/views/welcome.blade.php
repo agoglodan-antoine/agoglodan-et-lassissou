@@ -2,17 +2,6 @@
 
 @section('content')
 
-{{--
-  ============================================================================
-  HERO — repris de Maquette_accueil.html (structure, styles, animations
-  radar/compteurs à l'identique). Le texte a été corrigé pour rester fidèle
-  au cahier des charges du mémoire (voir README_ROADMAP.md) : la plateforme
-  prélève une commission transparente de 5 % sur les ventes ET les
-  livraisons effectivement réalisées — il n'y a pas de "commission 0 %".
-  Le champ de recherche du hero a été retiré au profit d'une recherche
-  générale accessible depuis la barre de navigation (voir SearchController).
-  ============================================================================
---}}
 <section class="hero" id="top">
   <div class="container hero-grid">
     <div class="hero-copy">

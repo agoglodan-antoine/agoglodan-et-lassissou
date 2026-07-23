@@ -3,7 +3,7 @@
 @section('title', 'Vérification email — ElevConnect')
 
 @push('styles')
-  <link rel="stylesheet" href="{{ asset('css/auth.css') }}">
+   @vite(['resources/css/auth.css'])
 @endpush
 
 @section('content')

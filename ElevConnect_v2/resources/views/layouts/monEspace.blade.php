@@ -7,13 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,600&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
-{{-- Même design system / animation de chargement progressif que le layout
-     public "app" — voir resources/css/app.css, resources/js/app.js et
-     vite.config.js. dashboard.css reste un fichier séparé (spécifique à ce
-     layout), chargé ici directement plutôt que via Vite. --}}
 @vite(['resources/css/app.css', 'resources/js/app.js'])
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
-<link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
 <!-- Favicon -->
 <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
 @stack('styles')
@@ -23,30 +18,38 @@
 @php
   $u = auth()->user();
 
-  // Correspondance route active -> libellé affiché dans la petite entête
-  // horizontale. Réutilisée aussi pour l'état actif de la barre latérale.
+  // Correspondance route active -> libellé + route "index" de la section,
+  // affichés dans la petite entête horizontale et dans le fil d'ariane.
+  // Réutilisée aussi pour l'état actif de la barre latérale. La route est
+  // celle vers laquelle pointe le maillon "section" du fil d'ariane quand on
+  // se trouve sur une page enfant (create/edit/show) de cette section.
   $sections = [
-    'mon-espace.dashboard'                      => 'Tableau de bord',
-    'mon-espace.annonces.*'                     => 'Mon catalogue',
-    'mon-espace.commandes-fournisseur.*'        => 'Commandes reçues',
-    'mon-espace.livraison.proposees'            => 'Livraisons proposées',
-    'mon-espace.livraison.*'                    => 'Mes livraisons',
-    'mon-espace.planning.*'                     => 'Mon planning',
-    'mon-espace.services.*'                     => 'Mes services',
-    'mon-espace.rendez-vous-recus.*'            => 'Rendez-vous reçus',
-    'mon-espace.abonnement.*'                   => 'Mon abonnement',
-    'mon-espace.versements.*'                   => 'Mes versements',
-    'mon-espace.rendez-vous.*'                  => 'Mes rendez-vous',
-    'mon-espace.commandes.*'                    => 'Mes achats',
-    'actualites.*'                              => 'Actualités',
-    'mon-espace.actualites.*'                   => 'Actualités',
-    'mon-espace.notifications.*'                => 'Notifications',
-    'mon-espace.profile.*'                      => 'Mon profil',
-    'mon-espace.admin.*'                        => 'Administration',
+    'mon-espace.dashboard'                      => ['label' => 'Tableau de bord',         'route' => 'mon-espace.dashboard'],
+    'mon-espace.annonces.*'                     => ['label' => 'Mon catalogue',            'route' => 'mon-espace.annonces.index'],
+    'mon-espace.commandes-fournisseur.*'        => ['label' => 'Commandes',                'route' => 'mon-espace.commandes-fournisseur.index'],
+    'mon-espace.livraison.proposees'            => ['label' => 'Livraisons proposées',     'route' => 'mon-espace.livraison.proposees'],
+    'mon-espace.livraison.*'                    => ['label' => 'Historique des livraisons','route' => 'mon-espace.livraison.mes'],
+    'mon-espace.planning.*'                     => ['label' => 'Mon planning',             'route' => 'mon-espace.planning.index'],
+    'mon-espace.services.*'                     => ['label' => 'Mes services',             'route' => 'mon-espace.services.index'],
+    'mon-espace.rendez-vous-recus.*'            => ['label' => 'Rendez-vous reçus',        'route' => 'mon-espace.rendez-vous-recus.index'],
+    'mon-espace.abonnement.*'                   => ['label' => 'Mon abonnement',           'route' => 'mon-espace.abonnement.show'],
+    'mon-espace.versements.*'                   => ['label' => 'Mes versements',           'route' => 'mon-espace.versements.index'],
+    'mon-espace.rendez-vous.*'                  => ['label' => 'Mes rendez-vous',          'route' => 'mon-espace.rendez-vous.index'],
+    'mon-espace.commandes.*'                    => ['label' => 'Mes achats',            'route' => 'mon-espace.commandes.index'],
+    'actualites.*'                              => ['label' => 'Actualités',               'route' => 'actualites.index'],
+    'mon-espace.actualites.*'                   => ['label' => 'Actualités',               'route' => 'actualites.index'],
+    'mon-espace.notifications.*'                => ['label' => 'Notifications',            'route' => 'mon-espace.notifications.index'],
+    'mon-espace.profile.*'                      => ['label' => 'Mon profil',               'route' => 'mon-espace.profile.edit'],
+    'mon-espace.admin.*'                        => ['label' => 'Administration',           'route' => 'mon-espace.admin.dashboard'],
   ];
   $pageLabel = 'Mon espace';
-  foreach ($sections as $pattern => $label) {
-    if (request()->routeIs($pattern)) { $pageLabel = $label; break; }
+  $sectionRoute = null;
+  foreach ($sections as $pattern => $section) {
+    if (request()->routeIs($pattern)) {
+      $pageLabel = $section['label'];
+      $sectionRoute = $section['route'];
+      break;
+    }
   }
 
   // Fil d'ariane : Tableau de bord > Section > Action (le 3ᵉ niveau n'apparaît
@@ -73,14 +76,9 @@
 
 <div class="mes-shell">
 
-  <aside class="mes-sidebar">
+  <aside class="mes-sidebar" id="mesSidebar">
     <a href="{{ route('home') }}" class="mes-logo">
-      <svg viewBox="0 0 48 48" fill="none" width="30" height="30">
-        <circle cx="24" cy="24" r="24" fill="#2F4F38"/>
-        <path d="M14 30c0-7 4.5-12 10-12s10 5 10 12" stroke="#D79B2A" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-        <circle cx="24" cy="16" r="3.4" fill="#F3EBD8"/>
-        <path d="M24 19.4v4" stroke="#F3EBD8" stroke-width="2" stroke-linecap="round"/>
-      </svg>
+      <img src="{{ asset('favicon.png') }}" alt="ElevConnect" width="30" height="30">
       <span class="mes-logo-text">
         ElevConnect
         <small>{{ $roleLabel }}</small>
@@ -147,16 +145,21 @@
           <small>{{ $roleLabel }}</small>
         </span>
       </a>
-      <a href="{{ route('home') }}" class="mes-foot-link"><i class="fa-solid fa-arrow-up-right-from-square"></i> Voir le site public</a>
+      <a href="{{ route('home') }}" class="mes-foot-link"><i class="fa-solid fa-arrow-up-right-from-square"></i> <span>Voir le site public</span></a>
       <form method="POST" action="{{ route('logout') }}">
         @csrf
-        <button type="submit" class="mes-foot-link mes-logout"><i class="fa-solid fa-right-from-bracket"></i> Déconnexion</button>
+        <button type="submit" class="mes-foot-link mes-logout"><i class="fa-solid fa-right-from-bracket"></i> <span>Déconnexion</span></button>
       </form>
     </div>
   </aside>
 
+  <div class="mes-sidebar-overlay" id="mesSidebarOverlay"></div>
+
   <div class="mes-main">
     <header class="mes-topbar">
+      <button type="button" class="mes-topbar-burger" id="mesBurgerBtn" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="mesSidebar">
+        <span></span><span></span><span></span>
+      </button>
       <h2>{{ $pageLabel }}</h2>
       <div class="mes-topbar-actions">
         <a href="{{ route('mon-espace.notifications.index') }}" title="Notifications"><i class="fa-solid fa-bell"></i></a>
@@ -167,7 +170,11 @@
       <a href="{{ route('mon-espace.dashboard') }}"><i class="fa-solid fa-house"></i></a>
       <i class="fa-solid fa-chevron-right"></i>
       @if ($actionLabel)
-        <span class="is-muted">{{ $pageLabel }}</span>
+        @if ($sectionRoute && $sectionRoute !== 'mon-espace.dashboard')
+          <a href="{{ route($sectionRoute) }}" class="is-muted">{{ $pageLabel }}</a>
+        @else
+          <span class="is-muted">{{ $pageLabel }}</span>
+        @endif
         <i class="fa-solid fa-chevron-right"></i>
         <span>{{ $actionLabel }}</span>
       @else

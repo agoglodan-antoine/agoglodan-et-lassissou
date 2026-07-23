@@ -3,7 +3,7 @@
 @section('title', 'Livraisons disponibles — ElevConnect')
 
 @push('styles')
-  <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
+  
 @endpush
 
 @section('content')
@@ -14,7 +14,7 @@
         <h1>Livraisons disponibles</h1>
         <p>Commandes validées par leur fournisseur, en attente d'un livreur.</p>
       </div>
-      <a href="{{ route('livraison.mes') }}" class="btn btn-ghost-dark">Mes livraisons en cours</a>
+      <a href="{{ route('livraison.mes') }}" class="btn btn-ghost-dark">Historiques livraison en cours</a>
     </div>
 
     @if (session('status'))

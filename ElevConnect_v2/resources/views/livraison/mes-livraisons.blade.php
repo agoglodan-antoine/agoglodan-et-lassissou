@@ -1,13 +1,13 @@
 @extends('layouts.monEspace')
 
-@section('title', 'Mes livraisons — ElevConnect')
+@section('title', 'Historiques livraison — ElevConnect')
 
 @section('content')
 <section class="dash-section">
   <div class="container">
     <div class="dash-head">
       <div>
-        <h1>Mes livraisons</h1>
+        <h1>Historiques livraison</h1>
         <p>Suivi de vos livraisons acceptées, de la prise en charge à la remise.</p>
       </div>
       <a href="{{ route('mon-espace.livraison.proposees') }}" class="btn btn-ghost-dark">Voir les livraisons proposées</a>

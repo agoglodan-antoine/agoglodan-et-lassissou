@@ -10,10 +10,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,600&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <!-- Favicon -->
 <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
-{{-- CSS + JS communs à tout le site (design system, header/footer publics,
-     chargement progressif au défilement) : centralisés dans resources/ et
-     compilés par Vite plutôt que servis comme simples fichiers statiques —
-     voir resources/css/app.css, resources/js/app.js et vite.config.js. --}}
 @vite(['resources/css/app.css', 'resources/js/app.js'])
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 @stack('styles')
@@ -24,12 +20,7 @@
 <header class="site-header" id="siteHeader">
   <div class="container nav-row">
     <a href="{{ route('home') }}#top" class="logo">
-      <svg class="logo-mark" viewBox="0 0 48 48" fill="none">
-        <circle cx="24" cy="24" r="24" fill="#2F4F38"/>
-        <path d="M14 30c0-7 4.5-12 10-12s10 5 10 12" stroke="#D79B2A" stroke-width="2.4" fill="none" stroke-linecap="round"/>
-        <circle cx="24" cy="16" r="3.4" fill="#F3EBD8"/>
-        <path d="M24 19.4v4" stroke="#F3EBD8" stroke-width="2" stroke-linecap="round"/>
-      </svg>
+      <img class="logo-mark" src="{{ asset('favicon.png') }}" alt="ElevConnect">
       ElevConnect
     </a>
     <nav class="nav-links">
@@ -96,11 +87,6 @@
           <a href="{{ route('register') }}" class="btn btn-primary">Créer un compte</a>
         @endauth
       </div>
-
-      <div class="mp-footer">
-        <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 00-8.5 15.3L2 22l4.8-1.5A10 10 0 1012 2z"/></svg>
-        Besoin d'aide ? Contactez-nous sur WhatsApp
-      </div>
     </div>
    </div>
   </nav>
@@ -121,7 +107,7 @@
   <div class="container footer-grid">
     <div class="footer-about">
       <div class="footer-logo">
-        <svg viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="24" fill="#2F4F38"/><path d="M14 30c0-7 4.5-12 10-12s10 5 10 12" stroke="#D79B2A" stroke-width="2.4" fill="none" stroke-linecap="round"/><circle cx="24" cy="16" r="3.4" fill="#F3EBD8"/></svg>
+        <img src="{{ asset('favicon.png') }}" alt="ElevConnect">
         ElevConnect
       </div>
       <p>La plateforme qui structure la filière élevage béninoise : éleveurs, vendeurs de provende, vendeurs d'accessoires, acheteurs, vétérinaires et livreurs, partout dans le pays.</p>

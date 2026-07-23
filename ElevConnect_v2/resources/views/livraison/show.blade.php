@@ -8,7 +8,7 @@
     <div class="dash-card">
       <x-back-link
         :href="$livraison->statut === 'en_attente' ? route('mon-espace.livraison.proposees') : route('mon-espace.livraison.mes')"
-        :label="$livraison->statut === 'en_attente' ? 'Retour aux livraisons proposées' : 'Retour à mes livraisons'"
+        :label="$livraison->statut === 'en_attente' ? 'Retour aux livraisons proposées' : 'Retour à Historiques livraison'"
       />
 
       @if (session('status'))

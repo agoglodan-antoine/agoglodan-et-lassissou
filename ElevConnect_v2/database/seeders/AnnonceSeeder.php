@@ -58,7 +58,7 @@ class AnnonceSeeder extends Seeder
                 'mois' => null,
                 'unite_de_mesure' => 'sac',
                 'image_1' => 'annonces/provende1.jpg',
-                'image_2' => null,
+                'image_2' => 'annonces/provende2.jpg',
                 'statut' => 'visible',
             ],
             [

@@ -18,8 +18,8 @@ class ActualiteMediaSeeder extends Seeder
 
             DB::table('actualites_media')->insert([
                 'id_actualite' => $id,
-                'chemin_fichier' => 'actualites/media_' . ($i + 1) . '.' . $extension,
-                'type_media' => $type,
+                'chemin_fichier' => 'actualites/media_' . ($i + 1) . '.jpg',// . $extension,
+                'type_media' => 'image', //$type,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);

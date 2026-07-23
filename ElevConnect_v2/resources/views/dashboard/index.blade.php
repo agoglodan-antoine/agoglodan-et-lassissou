@@ -74,7 +74,7 @@
 
       @if (isset($graphiques['mes_livraisons']))
         <div class="chart-card">
-          <h3>Mes livraisons — 6 derniers mois</h3>
+          <h3>Historiques livraison — 6 derniers mois</h3>
           <div class="chart-card-body"><canvas id="chartLivraisons"></canvas></div>
         </div>
       @endif
@@ -117,7 +117,7 @@
         </a>
         <a href="{{ route('mon-espace.livraison.mes') }}" class="shortcut-card">
           <i class="fa-solid fa-route"></i>
-          <b>Mes livraisons</b>
+          <b>Historiques livraison</b>
           <p>Suivre mes courses en cours.</p>
         </a>
       @endif

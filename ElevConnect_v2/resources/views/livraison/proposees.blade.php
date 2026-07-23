@@ -10,7 +10,7 @@
         <h1>Livraisons proposées</h1>
         <p>Commandes pour lesquelles un acheteur vous a choisi comme livreur — acceptez ou refusez chacune.</p>
       </div>
-      <a href="{{ route('mon-espace.livraison.mes') }}" class="btn btn-ghost-dark">Mes livraisons en cours</a>
+      <a href="{{ route('mon-espace.livraison.mes') }}" class="btn btn-ghost-dark">Historiques livraison en cours</a>
     </div>
 
     <div class="dash-card" style="background:{{ $estDisponible ? 'var(--pasture-soft)' : 'rgba(189,74,30,0.08)' }};box-shadow:none;display:flex;align-items:center;justify-content:space-between;gap:16px;">

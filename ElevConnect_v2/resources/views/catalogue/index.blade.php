@@ -3,7 +3,7 @@
 @section('title', 'Annonces — ElevConnect')
 
 @push('styles')
-  <link rel="stylesheet" href="{{ asset('css/dashboard.css') }}">
+  
 @endpush
 
 @section('content')

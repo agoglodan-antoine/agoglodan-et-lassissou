@@ -1,3 +1,4 @@
+//resources/js/app.js
 /* ===========================================================================
    ElevConnect — interactions transverses (header public, menu mobile,
    recherche, révélations au scroll) + widgets spécifiques à la page
@@ -297,6 +298,45 @@ document.querySelectorAll('input[type="file"][data-max-mb]').forEach(input => {
     hint.style.color = 'var(--pasture-dark)';
   });
 });
+
+// ============ MON ESPACE : tiroir latéral mobile ============
+// Absent du layout public (app) : la sidebar, le bouton burger de la topbar
+// et le voile d'arrière-plan n'existent que dans monEspace.blade.php.
+// Sur grand écran, la sidebar reste toujours visible (voir app.css) ; ce
+// bloc ne fait qu'ajouter/retirer la classe .open sur mobile.
+const mesSidebar = document.getElementById('mesSidebar');
+if (mesSidebar) {
+  const mesBurgerBtn = document.getElementById('mesBurgerBtn');
+  const mesOverlay = document.getElementById('mesSidebarOverlay');
+
+  function openMesSidebar(){
+    mesSidebar.classList.add('open');
+    if (mesOverlay) mesOverlay.classList.add('open');
+    if (mesBurgerBtn) mesBurgerBtn.setAttribute('aria-expanded', 'true');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeMesSidebar(){
+    mesSidebar.classList.remove('open');
+    if (mesOverlay) mesOverlay.classList.remove('open');
+    if (mesBurgerBtn) mesBurgerBtn.setAttribute('aria-expanded', 'false');
+    document.body.style.overflow = '';
+  }
+
+  if (mesBurgerBtn) {
+    mesBurgerBtn.addEventListener('click', () => {
+      mesSidebar.classList.contains('open') ? closeMesSidebar() : openMesSidebar();
+    });
+  }
+  if (mesOverlay) mesOverlay.addEventListener('click', closeMesSidebar);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && mesSidebar.classList.contains('open')) closeMesSidebar();
+  });
+  // Referme le tiroir dès qu'on choisit un lien du menu (mobile uniquement,
+  // mais inoffensif sur grand écran puisque le tiroir n'y est jamais "open").
+  mesSidebar.querySelectorAll('a, button').forEach(el => {
+    el.addEventListener('click', closeMesSidebar);
+  });
+}
 
 // Footer year (absent du layout monEspace, qui n'a pas de pied de page)
 const yearEl = document.getElementById('year');

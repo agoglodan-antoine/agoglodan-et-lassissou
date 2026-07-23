@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
 
 /**
- * Traitement des commandes reçues par un fournisseur (Éleveur / Vendeur de
+ * Traitement des Commandes par un fournisseur (Éleveur / Vendeur de
  * provende / Vendeur d'accessoires) sur ses propres annonces.
  * Cycle couvert ici : payee -> en_cours_de_traitement -> validee (ou annulee).
  * La validation ouvre une entrée LIVRAISON assignée au livreur choisi par
